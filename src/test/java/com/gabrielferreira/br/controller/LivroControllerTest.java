@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -180,4 +181,51 @@ public class LivroControllerTest {
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("mensagem", equalTo("Usuário não encontrado.")));
 	}
+	
+	@Test
+	@DisplayName("Deve buscar o livro com o id informado.")
+	public void deveBuscarLivro() throws Exception {
+		// Cenário 
+		Usuario usuario = Usuario.builder().id(133L).autor("Teste usuário").dataNascimento(new Date()).build();
+		Livro livro = Livro.builder().id(12L).usuario(usuario).isbn("001").titulo("Teste Livro Gabriel").subtitulo("Teste teste Gabriel")
+				.sinopse("Teste sinopse gabriel").build();
+		
+		// Executando o buscar do livro
+		when(livroService.getLivro(livro.getId())).thenReturn(livro);
+		
+		// Criar uma requisição do tipo get
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_LIVROS + "/{idLivro}",livro.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+		
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("id").value(livro.getId()))
+				.andExpect(jsonPath("titulo").value(livro.getTitulo()))
+				.andExpect(jsonPath("isbn").value(livro.getIsbn()))
+				.andExpect(jsonPath("subtitulo").value(livro.getSubtitulo()))
+				.andExpect(jsonPath("sinopse").value(livro.getSinopse()))
+				.andExpect(jsonPath("usuarioDto.autor").value(livro.getUsuario().getAutor()));
+	}
+	
+	@Test
+	@DisplayName("Não deve buscar o livro, pois não encontrou informações dele.")
+	public void naoDeveBuscarLivro() throws Exception {
+		
+		// Cenário
+		Long idLivro = 122L;
+
+		// Executando o buscar do livro
+		when(livroService.getLivro(idLivro)).thenThrow(new EntidadeNotFoundException("Livro não encontrado."));
+
+		// Criar uma requisição do tipo get
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_LIVROS + "/{idLivro}",idLivro).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("mensagem", equalTo("Livro não encontrado.")));
+	}
+	
 }
