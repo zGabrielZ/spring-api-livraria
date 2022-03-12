@@ -3,11 +3,13 @@ package com.gabrielferreira.br.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.text.ParseException;
+import java.util.Optional;
 import java.util.Date;
 
 import org.junit.jupiter.api.Assertions;
@@ -19,6 +21,7 @@ import org.mockito.Mockito;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
@@ -136,5 +139,47 @@ public class LivroServiceTest {
 		// Verificação
 		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
 		verify(livroRepositorio,never()).save(any());
+	}
+	
+	@Test
+	@DisplayName("Deve buscar o livro com o id informado.")
+	public void deveBuscarLivro() {
+		// Cenário 
+		
+		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		
+		Livro livro = Livro.builder().id(22L).usuario(usuario).isbn("Teste isbn").titulo("Teste titulo")
+				.subtitulo("Teste subtitulo").sinopse("Teste sinopse").build();
+		
+		// Quando for buscar o livro, retornar o livro de cima 
+		doReturn(Optional.of(livro)).when(livroRepositorio).findById(livro.getId());
+		
+		// Executando o método de buscar
+		Livro livroExistente = livroService.getLivro(livro.getId());
+		
+		// Verificando se foi invocado o find by
+		verify(livroRepositorio).findById(anyLong());
+		
+		// Verificando se foi igual
+		assertThat(livroExistente.getId()).isNotNull();
+		assertThat(livroExistente.getUsuario().getId()).isNotNull();
+		assertThat(livroExistente.getIsbn()).isEqualTo(livro.getIsbn());
+		assertThat(livroExistente.getTitulo()).isEqualTo(livro.getTitulo());
+		assertThat(livroExistente.getSubtitulo()).isEqualTo(livro.getSubtitulo());
+		assertThat(livroExistente.getSinopse()).isEqualTo(livro.getSinopse());	
+	}
+	
+	@Test
+	@DisplayName("Deve lançar uma exception, pois não encontrou o livro.")
+	public void naoDeveBuscarLivro() {
+		// Cenário 	
+		when(livroRepositorio.findById(anyLong())).thenReturn(Optional.empty());
+		
+		// Executando 
+		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class, () -> livroService.getLivro(anyLong()));
+		
+		// Verificação
+		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
+		verify(livroRepositorio).findById(anyLong());
 	}
 }

@@ -1,9 +1,12 @@
 package com.gabrielferreira.br.service;
 
+import java.util.Optional;
+
 import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
+import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
@@ -27,6 +30,14 @@ public class LivroService {
 		verificarTituloExistente(criarLivroDTO.getTitulo());
 		verificarIsbnExistente(livro.getIsbn());
 		return livroRepositorio.save(livro);
+	}
+	
+	public Livro getLivro(Long id) {
+		Optional<Livro> optionalLivro = livroRepositorio.findById(id);
+		if(!optionalLivro.isPresent()) {
+			throw new EntidadeNotFoundException("Livro não encontrado.");
+		}
+		return optionalLivro.get();
 	}
 	
 	public void verificarTituloExistente(String titulo) {
