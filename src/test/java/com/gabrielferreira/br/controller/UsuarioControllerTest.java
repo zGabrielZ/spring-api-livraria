@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarUsuarioDTO;
@@ -139,6 +140,47 @@ public class UsuarioControllerTest {
 				.andDo(print())
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("mensagem", equalTo("Este autor já foi cadastrado.")));
+	}
+	
+	@Test
+	@DisplayName("Deve buscar o usuário com o id informado.")
+	public void deveBuscarUsuario() throws Exception {
+		// Cenário 
+		Usuario usuario = Usuario.builder().id(133L).autor("Teste usuário").dataNascimento(sdf.parse("12/12/1998")).build();
+		
+		// Executando o buscar do livro
+		when(usuarioService.getUsuario(usuario.getId())).thenReturn(usuario);
+		
+		// Criar uma requisição do tipo get
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_USUARIO + "/{idUsuario}",usuario.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+		
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("id").value(usuario.getId()))
+				.andExpect(jsonPath("autor").value(usuario.getAutor()))
+				.andExpect(jsonPath("dataNascimento").value(sdf.format(usuario.getDataNascimento())));
+	}
+	
+	@Test
+	@DisplayName("Não deve buscar o usuário, pois não encontrou informações dele.")
+	public void naoDeveBuscarUsuario() throws Exception {
+		
+		// Cenário
+		Long idUsuario = 122L;
+
+		// Executando o buscar do usuário
+		when(usuarioService.getUsuario(idUsuario)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
+
+		// Criar uma requisição do tipo get
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_USUARIO + "/{idUsuario}",idUsuario).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("mensagem", equalTo("Usuário não encontrado.")));
 	}
 	
 }

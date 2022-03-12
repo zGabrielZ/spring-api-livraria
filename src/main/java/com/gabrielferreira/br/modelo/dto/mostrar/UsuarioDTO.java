@@ -3,6 +3,7 @@ package com.gabrielferreira.br.modelo.dto.mostrar;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gabrielferreira.br.modelo.Usuario;
 
 import lombok.AllArgsConstructor;
@@ -27,6 +28,8 @@ public class UsuarioDTO implements Serializable{
 	
 	private Long id;
 	private String autor;
+	
+	@JsonFormat(pattern = "dd/MM/yyyy")
 	private Date dataNascimento;
 	
 	public UsuarioDTO(Usuario usuario) {
