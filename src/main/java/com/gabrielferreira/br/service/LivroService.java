@@ -32,6 +32,10 @@ public class LivroService {
 		return livroRepositorio.save(livro);
 	}
 	
+	public void deletarLivro(Long id) {
+		livroRepositorio.deleteById(id);
+	}
+	
 	public Livro getLivro(Long id) {
 		Optional<Livro> optionalLivro = livroRepositorio.findById(id);
 		if(!optionalLivro.isPresent()) {

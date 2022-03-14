@@ -228,4 +228,45 @@ public class LivroControllerTest {
 				.andExpect(jsonPath("mensagem", equalTo("Livro não encontrado.")));
 	}
 	
+	@Test
+	@DisplayName("Deve deletar livro pelo id informado.")
+	public void deveDeletarLivro() throws Exception {
+		// Cenário 
+		Usuario usuario = Usuario.builder().id(133L).autor("Teste usuário").dataNascimento(new Date()).build();
+		Livro livro = Livro.builder().id(12L).usuario(usuario).isbn("001").titulo("Teste Livro Gabriel").subtitulo("Teste teste Gabriel")
+				.sinopse("Teste sinopse gabriel").build();
+		
+		// Executando o deletar do livro
+		when(livroService.getLivro(livro.getId())).thenReturn(livro);
+		
+		// Criar uma requisição do tipo delete
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_LIVROS + "/{idLivro}",livro.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+				
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNoContent());
+						
+	}
+	
+	@Test
+	@DisplayName("Não deve deletar livro pelo id informado pois não encontrou o livro.")
+	public void naoDeveDeletarLivro() throws Exception {
+		// Cenário 
+		Long idLivro = 150L;
+		
+		// Executando o deletar do livro
+		when(livroService.getLivro(idLivro)).thenThrow(new EntidadeNotFoundException("Livro não encontrado."));
+		
+		// Criar uma requisição do tipo delete
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_LIVROS + "/{idLivro}",idLivro).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+				
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("mensagem", equalTo("Livro não encontrado.")));
+						
+	}
+	
 }

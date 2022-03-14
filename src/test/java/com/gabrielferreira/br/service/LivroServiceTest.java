@@ -182,4 +182,25 @@ public class LivroServiceTest {
 		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
 		verify(livroRepositorio).findById(anyLong());
 	}
+	
+	@Test
+	@DisplayName("Deve deletar o livro pelo id informado.")
+	public void deveDeletarLivro() {
+
+		// Cenário
+		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		
+		Livro livro = Livro.builder().id(22L).usuario(usuario).isbn("Teste isbn").titulo("Teste titulo")
+				.subtitulo("Teste subtitulo").sinopse("Teste sinopse").build();
+		
+		// Quando for buscar o livro, vai ter que retornar o livro de cima 
+		doReturn(Optional.of(livro)).when(livroRepositorio).findById(livro.getId());
+		
+		// Executand o método 
+		livroService.deletarLivro(livro.getId());
+		
+		// Verificação
+		verify(livroRepositorio).deleteById(livro.getId());
+		
+	}
 }
