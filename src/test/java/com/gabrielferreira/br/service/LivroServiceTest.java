@@ -85,6 +85,112 @@ public class LivroServiceTest {
 	}
 	
 	@Test
+	@DisplayName("Deve atualizar um livro com todas as informações preenchidas.")
+	public void deveAtualizarLivro() throws ParseException {
+		
+		// Cénario
+		// Criando o nosso livro para fazer o update 
+		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002").titulo("Teste Livro atualizar")
+				.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").build();
+		
+		// Criar a entidade que já foi feito o update
+		Livro livroAtualizado = Livro.builder().id(criarLivroDTO.getId()).usuario(usuarioAtualizar).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
+							.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).build();
+		
+		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou seja não existe isbn repetido
+		when(livroRepositorio.buscarIsbnLivroQuandoForAtualizar(criarLivroDTO.getIsbn(),criarLivroDTO.getId())).thenReturn(null);
+		
+		// Quando for verificar o titulo cadastrado, é pra retorna como false, ou seja não existe titulo cadastrado
+		when(livroRepositorio.existsByTituloQuandoForAtualizar(criarLivroDTO.getTitulo(),criarLivroDTO.getId())).thenReturn(Optional.empty());
+		
+		// Quando for atualizar no repositorio, retornar o livro que queria já salvar
+		when(livroRepositorio.save(any())).thenReturn(livroAtualizado);
+		
+		// Executando o método
+		Livro livroParaAtualizar = livroService.inserir(criarLivroDTO);
+		
+		// Verificando se foi invocado o save no service
+		verify(livroRepositorio).save(any());
+		
+		// Verificando 
+		assertThat(livroParaAtualizar.getId()).isNotNull();
+		assertThat(livroParaAtualizar.getIsbn()).isEqualTo(criarLivroDTO.getIsbn());
+		assertThat(livroParaAtualizar.getTitulo()).isEqualTo(criarLivroDTO.getTitulo());
+		assertThat(livroParaAtualizar.getSubtitulo()).isEqualTo(criarLivroDTO.getSubtitulo());
+		assertThat(livroParaAtualizar.getSinopse()).isEqualTo(criarLivroDTO.getSinopse());
+		
+	}
+	
+	@Test
+	@DisplayName("Não deve atualizar um livro, pois já tem o isbn cadastrado.")
+	public void naoDeveAtualizarLivroIsbn() {
+		// Cénario
+		// Criando o nosso livro para fazer o update
+		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002")
+				.titulo("Teste Livro atualizar").subtitulo("Teste subtitulo atualizar")
+				.sinopse("Teste sinopse atualizar").build();
+
+		// Entidade que já esta salva no banco do mock
+		Livro livroSalvo = Livro.builder().id(50L).usuario(usuarioAtualizar).isbn("002")
+				.titulo("Teste salvo").subtitulo("Teste subtitulo salvo")
+				.sinopse("Teste sinopse salvo").build();
+
+		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou
+		// seja não existe isbn repetido
+		when(livroRepositorio.buscarIsbnLivroQuandoForAtualizar(criarLivroDTO.getIsbn(), criarLivroDTO.getId()))
+				.thenReturn(livroSalvo);
+
+		// Quando for verificar o titulo cadastrado, é pra retorna como false, ou seja
+		// não existe titulo cadastrado
+		when(livroRepositorio.existsByTituloQuandoForAtualizar(criarLivroDTO.getTitulo(), criarLivroDTO.getId()))
+				.thenReturn(Optional.empty());
+
+
+		// Execução
+		Throwable exception = Assertions.assertThrows(RegraDeNegocioException.class, () -> livroService.inserir(criarLivroDTO));
+				
+		// Verificação
+		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
+		verify(livroRepositorio,never()).save(any());
+	}
+	
+	@Test
+	@DisplayName("Não deve atualizar um livro, pois já tem o titulo cadastrado.")
+	public void naoDeveAtualizarLivroTitulo() {
+		// Cénario
+		// Criando o nosso livro para fazer o update
+		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002")
+				.titulo("Teste Livro atualizar").subtitulo("Teste subtitulo atualizar")
+				.sinopse("Teste sinopse atualizar").build();
+
+		// Entidade que já esta salva no banco do mock
+		Livro livroSalvo = Livro.builder().id(50L).usuario(usuarioAtualizar).isbn("004")
+				.titulo("Teste Livro atualizar").subtitulo("Teste subtitulo salvo")
+				.sinopse("Teste sinopse salvo").build();
+
+		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou
+		// seja não existe isbn repetido
+		when(livroRepositorio.buscarIsbnLivroQuandoForAtualizar(criarLivroDTO.getIsbn(), criarLivroDTO.getId()))
+				.thenReturn(null);
+
+		// Quando for verificar o titulo cadastrado, é pra retorna como false, ou seja
+		// não existe titulo cadastrado
+		when(livroRepositorio.existsByTituloQuandoForAtualizar(criarLivroDTO.getTitulo(), criarLivroDTO.getId()))
+				.thenReturn(Optional.of(livroSalvo));
+
+
+		// Execução
+		Throwable exception = Assertions.assertThrows(RegraDeNegocioException.class, () -> livroService.inserir(criarLivroDTO));
+				
+		// Verificação
+		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
+		verify(livroRepositorio,never()).save(any());
+	}
+	
+	@Test
 	@DisplayName("Não deve inserir um livro, pois já tem o isbn cadastrado.")
 	public void naoDeveInserirLivroIsbn() {
 		//Cenário

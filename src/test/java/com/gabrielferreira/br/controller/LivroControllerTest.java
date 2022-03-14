@@ -2,6 +2,7 @@ package com.gabrielferreira.br.controller;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -267,6 +268,81 @@ public class LivroControllerTest {
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("mensagem", equalTo("Livro não encontrado.")));
 						
+	}
+	
+	@Test
+	@DisplayName("Deve atualizar o livro pelo id informado e campos encontrado.")
+	public void deveAtualizarLivro() throws Exception{
+		
+		// Cénario
+		
+		// Criar a entidade que já está salva no banco do mock
+		Livro livroJaSalvo = Livro.builder().id(50L).usuario(usuarioCriado).isbn("001").titulo("Teste teste")
+					.subtitulo("Teste subtitulo").sinopse("Teste sinopse").build();
+		
+		// Criando o nosso livro para fazer o update 
+		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002").titulo("Teste Livro atualizar")
+				.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").build();
+		
+		// Criar a entidade que já foi feito o update
+		Livro livroAtualizado = Livro.builder().id(criarLivroDTO.getId()).usuario(usuarioCriado).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
+							.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).build();
+		
+		// Executando o buscar do livro
+		when(livroService.getLivro(criarLivroDTO.getId())).thenReturn(livroJaSalvo);
+		
+		// Executando o atualizar do livro
+		when(livroService.inserir(any())).thenReturn(livroAtualizado);
+		
+		// Transformar o objeto em json
+		String json = new ObjectMapper().writeValueAsString(criarLivroDTO);
+		
+		// Criar uma requisição do tipo put
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put(API_LIVROS + "/{idLivro}",criarLivroDTO.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE).content(json);
+		
+		
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+			.andDo(print())
+			.andExpect(status().isNoContent())
+			.andExpect(jsonPath("id").value(livroAtualizado.getId()))
+			.andExpect(jsonPath("titulo").value(livroAtualizado.getTitulo()))
+			.andExpect(jsonPath("idUsuario").value(livroAtualizado.getUsuario().getId()))
+			.andExpect(jsonPath("isbn").value(livroAtualizado.getIsbn()))
+			.andExpect(jsonPath("subtitulo").value(livroAtualizado.getSubtitulo()))
+			.andExpect(jsonPath("sinopse").value(livroAtualizado.getSinopse()));
+		
+	}
+	
+	@Test
+	@DisplayName("Não deve atualizar o livro pois não encontrou o id como parametro.")
+	public void naoDeveAtualizarLivroIdParametroNaoInformado() throws Exception{
+		
+		// Cénario
+		
+		// Criando o nosso livro para fazer o update 
+		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002").titulo("Teste Livro atualizar")
+						.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").build();
+		
+		// Executando o buscar do livro
+		when(livroService.getLivro(anyLong())).thenThrow(new EntidadeNotFoundException("Livro não encontrado."));
+
+		
+		// Transformar o objeto em json
+		String json = new ObjectMapper().writeValueAsString(criarLivroDTO);
+		
+		// Criar uma requisição do tipo put
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put(API_LIVROS + "/{idLivro}",criarLivroDTO.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE).content(json);
+		
+		
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("mensagem", equalTo("Livro não encontrado.")));
+		
 	}
 	
 }

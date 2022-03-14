@@ -27,8 +27,8 @@ public class LivroService {
 	public Livro inserir(CriarLivroDTO criarLivroDTO) {
 		Usuario usuario = usuarioService.getUsuario(criarLivroDTO.getIdUsuario());
 		Livro livro = new Livro(criarLivroDTO.getId(), criarLivroDTO.getTitulo(), criarLivroDTO.getSubtitulo(), criarLivroDTO.getSinopse(), criarLivroDTO.getIsbn(), usuario);
-		verificarTituloExistente(criarLivroDTO.getTitulo());
-		verificarIsbnExistente(livro.getIsbn());
+		verificarTituloExistente(livro);
+		verificarIsbnExistente(livro);
 		return livroRepositorio.save(livro);
 	}
 	
@@ -44,17 +44,42 @@ public class LivroService {
 		return optionalLivro.get();
 	}
 	
-	public void verificarTituloExistente(String titulo) {
-		Boolean existeLivro = livroRepositorio.existsByTitulo(titulo);
-		if(existeLivro) {
-			throw new RegraDeNegocioException("Este Título já foi cadastrado por outro livro.");
+	public void verificarTituloExistente(Livro livro) {
+		
+		if(livro.getId() == null) {
+			
+			Boolean existeLivro = livroRepositorio.existsByTitulo(livro.getTitulo());
+			if(existeLivro) {
+				throw new RegraDeNegocioException("Este Título já foi cadastrado por outro livro.");
+			}
+		
+		} else if(livro.getId() != null) {
+			Optional<Livro> existeLivroAtualizar = livroRepositorio.existsByTituloQuandoForAtualizar(livro.getTitulo(),livro.getId());
+			if(existeLivroAtualizar.isPresent()) {
+				throw new RegraDeNegocioException("Título já existente ao atualizar.");
+			}
 		}
+		
 	}
 	
-	public void verificarIsbnExistente(String isbn) {
-		Livro livro = livroRepositorio.buscarIsbnLivro(isbn);
-		if(livro != null) {
-			throw new RegraDeNegocioException("Este ISBN já foi cadastrado por outro livro.");
+	public void verificarIsbnExistente(Livro livro) {
+		
+		
+		if(livro.getId() == null) {
+			
+			Livro livroExistente = livroRepositorio.buscarIsbnLivro(livro.getIsbn());
+			
+			if(livroExistente != null) {
+				throw new RegraDeNegocioException("Este ISBN já foi cadastrado por outro livro.");
+			}
+			
+		} else if(livro.getId() != null) {
+			
+			Livro livroExistenteAtualizar = livroRepositorio.buscarIsbnLivroQuandoForAtualizar(livro.getIsbn(),livro.getId());
+			
+			if(livroExistenteAtualizar != null) {
+				throw new RegraDeNegocioException("ISBN já existente ao atualizar.");
+			}
 		}
 	}
 }

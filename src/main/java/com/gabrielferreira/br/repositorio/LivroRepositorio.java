@@ -1,5 +1,7 @@
 package com.gabrielferreira.br.repositorio;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,6 +14,12 @@ public interface LivroRepositorio extends JpaRepository<Livro, Long>{
 
 	@Query("SELECT l FROM Livro l where l.isbn = :isbn")
 	public Livro buscarIsbnLivro(@Param("isbn") String isbn);
+	
+	@Query("SELECT l FROM Livro l where l.isbn = :isbn and l.id <> :idLivro")
+	public Livro buscarIsbnLivroQuandoForAtualizar(@Param("isbn") String isbn,@Param("idLivro") Long idLivro);
 
 	public Boolean existsByTitulo(String titulo);
+	
+	@Query("SELECT l FROM Livro l where l.titulo = :titulo and l.id <> :idLivro")
+	public Optional<Livro> existsByTituloQuandoForAtualizar(@Param("titulo") String titulo,@Param("idLivro") Long idLivro);
 }
