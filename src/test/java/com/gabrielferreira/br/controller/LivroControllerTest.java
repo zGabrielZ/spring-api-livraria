@@ -286,11 +286,11 @@ public class LivroControllerTest {
 				.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").build();
 		
 		// Criar a entidade que já foi feito o update
-		Livro livroAtualizado = Livro.builder().id(criarLivroDTO.getId()).usuario(usuarioCriado).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
+		Livro livroAtualizado = Livro.builder().id(criarLivroDTO.getId()).usuario(usuarioAtualizar).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
 							.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).build();
 		
 		// Executando o buscar do livro
-		when(livroService.getLivro(criarLivroDTO.getId())).thenReturn(livroJaSalvo);
+		when(livroService.getLivro(anyLong())).thenReturn(livroJaSalvo);
 		
 		// Executando o atualizar do livro
 		when(livroService.inserir(any())).thenReturn(livroAtualizado);

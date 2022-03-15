@@ -2,7 +2,6 @@ package com.gabrielferreira.br.repositorio;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 
 import java.util.Date;
 import java.util.Optional;
@@ -105,7 +104,8 @@ public class LivroRepositorioTest {
 	@DisplayName("Deve retornar nulo com o isbn informado.")
 	public void deveRetornarComNullIsbn() {
 		// Cenário 
-		livro = Livro.builder().id(null).usuario(any()).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+		usuario = Usuario.builder().id(null).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		livro = Livro.builder().id(null).usuario(usuario).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
 		
 		// Executando
 		Livro livroPesquisado = livroRepositorio.buscarIsbnLivro(livro.getIsbn());
@@ -177,7 +177,8 @@ public class LivroRepositorioTest {
 	@DisplayName("Deve retornar como falso o livro com titulo informado.")
 	public void deveRetornarFalseTitulo() {
 		// Cenário
-		livro = Livro.builder().id(null).usuario(any()).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+		usuario = Usuario.builder().id(null).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		livro = Livro.builder().id(null).usuario(usuario).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
 
 		// Execução
 		Boolean existeLivro = livroRepositorio.existsByTitulo(livro.getTitulo());
