@@ -309,4 +309,18 @@ public class LivroServiceTest {
 		verify(livroRepositorio).deleteById(livro.getId());
 		
 	}
+	
+	@Test
+	@DisplayName("Não deve deletar livro pois o id não foi informado.")
+	public void naoDeveDeletarLivro() {
+		
+		// Cenário
+		Livro livro = new Livro();
+		
+		// Executando 
+		Assertions.assertThrows(IllegalArgumentException.class, () -> livroService.deletarLivro(livro.getId()));
+		
+		// Verificando
+		verify(livroRepositorio,never()).delete(livro);
+	}
 }

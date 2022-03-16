@@ -33,6 +33,9 @@ public class LivroService {
 	}
 	
 	public void deletarLivro(Long id) {
+		if(id == null) {
+			throw new IllegalArgumentException("Para deletar o livro é preciso informar o id.");
+		}
 		livroRepositorio.deleteById(id);
 	}
 	

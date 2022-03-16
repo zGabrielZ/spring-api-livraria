@@ -41,6 +41,86 @@ public class LivroRepositorioTest {
 	private Livro livro2;
 	
 	@Test
+	@DisplayName("Deve obter livro pelo id informado.")
+	public void deveObterLivroPorId() {
+		// Cenário 
+		usuario = Usuario.builder().id(null).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+				
+		// Persistindo na base do usuario
+		entityManager.persist(usuario);
+				
+		// Buscando o nosso usuario 
+		Usuario usuarioPesquisado = usuarioRepositorio.findById(usuario.getId()).get();
+				
+		// Setando o nosso usuario com o livro
+		livro = Livro.builder().id(null).usuario(usuarioPesquisado).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+				
+		// Persistindo na base do livro
+		entityManager.persist(livro);
+		
+		// Executando 
+		Optional<Livro> livroExistente = livroRepositorio.findById(livro.getId());
+		
+		// Verificando
+		assertThat(livroExistente.isPresent()).isTrue();
+	}
+	
+	@Test
+	@DisplayName("Deve deletar o livro pelo id informado.")
+	public void deveDeletarLivro() {
+		// Cenário 
+		usuario = Usuario.builder().id(null).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+						
+		// Persistindo na base do usuario
+		entityManager.persist(usuario);
+						
+		// Buscando o nosso usuario 
+		Usuario usuarioPesquisado = usuarioRepositorio.findById(usuario.getId()).get();
+						
+		// Setando o nosso usuario com o livro
+		livro = Livro.builder().id(null).usuario(usuarioPesquisado).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+						
+		// Persistindo na base do livro
+		entityManager.persist(livro);
+		
+		// Executando 
+		Optional<Livro> livroPesquisadoAntesDeletar = livroRepositorio.findById(livro.getId());
+		entityManager.remove(livroPesquisadoAntesDeletar.get());
+		Optional<Livro> livroPesquisadoDepoisDeletar = livroRepositorio.findById(livro.getId());
+		
+		// Verificando
+		assertThat(!livroPesquisadoDepoisDeletar.isPresent()).isTrue();
+	}
+	
+	@Test
+	@DisplayName("Deve atualizar ou inserir o livro pelo id informado.")
+	public void deveAtualizarOuInserirLivro() {
+		// Cenário 
+		usuario = Usuario.builder().id(null).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+						
+		// Persistindo na base do usuario
+		entityManager.persist(usuario);
+						
+		// Buscando o nosso usuario 
+		Usuario usuarioPesquisado = usuarioRepositorio.findById(usuario.getId()).get();
+						
+		// Setando o nosso usuario com o livro
+		livro = Livro.builder().id(null).usuario(usuarioPesquisado).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+						
+		// Persistindo na base do livro
+		entityManager.persist(livro);
+		
+		// Executando 
+		Optional<Livro> livroPesquisado = livroRepositorio.findById(livro.getId());
+		livroPesquisado.get().setTitulo("Teste livro atualizar");
+		entityManager.merge(livroPesquisado.get());
+		
+		// Verificando
+		assertThat(livro.getId()).isNotNull();
+		assertThat(livroPesquisado.get().getTitulo()).isEqualTo("Teste livro atualizar");
+	}
+	
+	@Test
 	@DisplayName("Deve retornar o livro pesquisado com o isbn informado.")
 	public void deveBuscarIsbnLivro() {
 		
