@@ -1,6 +1,7 @@
 package com.gabrielferreira.br.controller;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -74,6 +75,43 @@ public class UsuarioControllerTest {
 	}
 	
 	@Test
+	@DisplayName("Deve atualizar o usuário pelo id informado e campos encontrado.")
+	public void deveAtualizarUsuario() throws Exception{
+		
+		// Cénario
+		// Criar a entidade que já está salva no banco do mock
+		Usuario usuarioJaSalvo = Usuario.builder().id(150L).autor("Gabriel Ferriera").dataNascimento(sdf.parse("14/07/1965")).build();
+		
+		// Criando o nosso livro para fazer o update 
+		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(30L).autor("Teste 123").dataNascimento(sdf.parse("26/12/1997")).build();
+		
+		// Criar a entidade que já foi feito o update
+		Usuario usuarioAtualizado = Usuario.builder().id(criarUsuarioDTO.getId()).autor(criarUsuarioDTO.getAutor()).dataNascimento(criarUsuarioDTO.getDataNascimento()).build();
+		
+		// Executando o buscar do usuário
+		when(usuarioService.getUsuario(anyLong())).thenReturn(usuarioJaSalvo);
+		
+		// Executando o atualizar do usuário
+		when(usuarioService.inserir(any())).thenReturn(usuarioAtualizado);
+		
+		// Transformar o objeto em json
+		String json = new ObjectMapper().writeValueAsString(criarUsuarioDTO);
+		
+		// Criar uma requisição do tipo put
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.put(API_USUARIO + "/{idUsuario}",criarUsuarioDTO.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE).content(json);
+		
+		
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+			.andDo(print())
+			.andExpect(status().isNoContent())
+			.andExpect(jsonPath("id").value(usuarioAtualizado.getId()))
+			.andExpect(jsonPath("autor").value(usuarioAtualizado.getAutor()))
+			.andExpect(jsonPath("dataNascimento").value(sdf.format(usuarioAtualizado.getDataNascimento())));
+		
+	}
+	
+	@Test
 	@DisplayName("Não deve criar usuário, pois não tem dados suficientes (Nome e data de nascimento não informados).")
 	public void naoDeveInserirUsuarioNaoTemDadoSuficiente() throws Exception {
 		
@@ -140,6 +178,31 @@ public class UsuarioControllerTest {
 				.andDo(print())
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("mensagem", equalTo("Este autor já foi cadastrado.")));
+	}
+	
+	@Test
+	@DisplayName("Não deve atualizar o usuário, pois já tem o autor já cadastrado por outro.")
+	public void naoDeveAtualizarUsuarioPoisTemAutorCadastrado() throws Exception {
+		
+		// Cenário
+		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(1L).autor("José Pereira da Silva").dataNascimento(sdf.parse("14/07/1965")).build();
+
+		// Executando o inserir do livro
+		when(usuarioService.inserir(any()))
+				.thenThrow(new RegraDeNegocioException("Autor já existente ao atualizar."));
+
+		// Transformar o objeto em json
+		String json = new ObjectMapper().writeValueAsString(criarUsuarioDTO);
+
+		// Criar uma requisição do tipo post
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(API_USUARIO).accept(JSON_MEDIATYPE)
+				.contentType(JSON_MEDIATYPE).content(json);
+
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("mensagem", equalTo("Autor já existente ao atualizar.")));
 	}
 	
 	@Test

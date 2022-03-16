@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,6 +40,16 @@ public class UsuarioController {
 		Usuario usuario = usuarioService.getUsuario(idUsuario);
 		UsuarioDTO usuarioDto = new UsuarioDTO(usuario);
 		return new ResponseEntity<>(usuarioDto,HttpStatus.OK);
+	}
+	
+	@PutMapping("/{idUsuario}")
+	public ResponseEntity<CriarUsuarioDTO> atualizarUsuario(@PathVariable Long idUsuario, @RequestBody CriarUsuarioDTO usuarioDto){
+		List<String> verificaCampos = CriarUsuarioValidacao.getVerificacaoErrosCriarUsuario(usuarioDto);
+		verificarCamposUsuario(verificaCampos);
+		Usuario usuario = usuarioService.getUsuario(idUsuario);
+		usuario = usuarioService.inserir(usuarioDto);
+		CriarUsuarioDTO criarUsuarioDTO = new CriarUsuarioDTO(usuario);
+		return new ResponseEntity<>(criarUsuarioDTO,HttpStatus.NO_CONTENT);
 	}
 	
 	private void verificarCamposUsuario(List<String> verificarCampos) {

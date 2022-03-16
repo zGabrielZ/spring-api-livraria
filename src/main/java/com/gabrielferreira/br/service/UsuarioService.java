@@ -22,7 +22,7 @@ public class UsuarioService {
 	@Transactional
 	public Usuario inserir(CriarUsuarioDTO criarUsuarioDTO) {
 		Usuario usuario = new Usuario(criarUsuarioDTO.getId(), criarUsuarioDTO.getAutor(), criarUsuarioDTO.getDataNascimento(), null);
-		verificarAutorExistente(usuario.getAutor());
+		verificarAutorExistente(usuario);
 		return usuarioRepositorio.save(usuario);
 	}
 	
@@ -34,10 +34,21 @@ public class UsuarioService {
 		return optionalUsuario.get();
  	}
 	
-	public void verificarAutorExistente(String autor) {
-		Boolean existeAutor = usuarioRepositorio.existsByAutor(autor);
-		if(existeAutor) {
-			throw new RegraDeNegocioException("Este autor já foi cadastrado.");
+	public void verificarAutorExistente(Usuario usuario) {
+		if(usuario.getId() == null) {
+			
+			Boolean existeAutor = usuarioRepositorio.existsByAutor(usuario.getAutor());
+			if(existeAutor) {
+				throw new RegraDeNegocioException("Este autor já foi cadastrado.");
+			}
+		
+		} else if(usuario.getId() != null) {
+			
+			Usuario usuarioPesquisado = usuarioRepositorio.buscarAutorUsuarioQuandoForAtualizar(usuario.getAutor(), usuario.getId());
+			if(usuarioPesquisado != null) {
+				throw new RegraDeNegocioException("Autor já existente ao atualizar.");
+			}
+			
 		}
 	}
 }

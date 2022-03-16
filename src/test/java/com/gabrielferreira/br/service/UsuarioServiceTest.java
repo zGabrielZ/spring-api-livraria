@@ -3,6 +3,7 @@ package com.gabrielferreira.br.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -68,6 +69,36 @@ public class UsuarioServiceTest {
 	}
 	
 	@Test
+	@DisplayName("Deve atualizar um usuário com todas as informações preenchidas.")
+	public void deveAtualizarUsuario() {
+		
+		// Cenário
+		// Criar o nosso usuário para fazer o update
+		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(11L).autor("Teste 123").dataNascimento(new Date()).build();
+		
+		// Criar a entidade que já foi feito o update
+		Usuario usuarioAtualizado = Usuario.builder().id(criarUsuarioDTO.getId()).autor(criarUsuarioDTO.getAutor()).dataNascimento(criarUsuarioDTO.getDataNascimento()).build();
+		
+		// Quando for verificar o método de autor ja cadastrado, deve retornar null, ou seja não existe autor repetido
+		when(usuarioRepositorio.buscarAutorUsuarioQuandoForAtualizar(anyString(), anyLong())).thenReturn(null);
+		
+		// Quando for atualizar no repositorio, retornar o usuário que queria já salvar
+		when(usuarioRepositorio.save(any())).thenReturn(usuarioAtualizado);
+		
+		// Executando o método
+		Usuario usuarioParaAtualizar = usuarioService.inserir(criarUsuarioDTO);
+		
+		// Verificando se foi invocado o save no service
+		verify(usuarioRepositorio).save(any());
+		
+		// Verificando 
+		assertThat(usuarioParaAtualizar.getId()).isNotNull();
+		assertThat(usuarioParaAtualizar.getAutor()).isEqualTo(usuarioAtualizado.getAutor());
+		assertThat(usuarioParaAtualizar.getDataNascimento()).isEqualTo(usuarioAtualizado.getDataNascimento());
+		
+	}
+	
+	@Test
 	@DisplayName("Não deve inserir usuário pois o autor já foi cadastrado anteriomente.")
 	public void naoDeveInserirUsuarioAutorRepetido() {
 		// Cenário já foi construido no criarInstancias()
@@ -78,6 +109,30 @@ public class UsuarioServiceTest {
 		// Execução
 		Throwable exception = Assertions.assertThrows(RegraDeNegocioException.class, () -> usuarioService.inserir(criarUsuarioDTO));
 		
+		// Verificação
+		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
+		verify(usuarioRepositorio,never()).save(any());
+	}
+	
+	@Test
+	@DisplayName("Não deve atualizar o usuário, pois já tem o autor cadastrado.")
+	public void naoDeveAtualizarUsuarioAutorRepetido() {
+		
+		// Cénario
+		// Criando o nosso usuario para fazer o update
+		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(11L).autor("Teste 123").dataNascimento(new Date()).build();
+
+		// Entidade que já esta salva no banco do mock
+		Usuario usuarioSalvo = Usuario.builder().id(50L).autor("Teste 123").dataNascimento(new Date()).build();
+
+		// Quando for verificar o autor cadastrado, é pra retorna como verdadeiro, ou seja existe autor cadastrado
+		when(usuarioRepositorio.buscarAutorUsuarioQuandoForAtualizar(anyString(), anyLong()))
+				.thenReturn(usuarioSalvo);
+
+
+		// Execução
+		Throwable exception = Assertions.assertThrows(RegraDeNegocioException.class, () -> usuarioService.inserir(criarUsuarioDTO));
+				
 		// Verificação
 		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
 		verify(usuarioRepositorio,never()).save(any());

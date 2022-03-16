@@ -62,4 +62,43 @@ public class UsuarioRepositorioTest {
 		assertThat(usuarioPesquisado).isFalse();
 	}
 	
+	@Test
+	@DisplayName("Deve retornar usuário quando for buscar o autor na hora de atualizar.")
+	public void deveRetornarUsuarioQuandoForBuscarAutorAtualizar() {
+		
+		// Cenário já foi construido no criarInstancias()
+		
+		// Persistindo na base do usuario
+		entityManager.persist(usuario);
+		
+		Usuario usuario2 = Usuario.builder().id(null).autor("Teste").dataNascimento(new Date()).build();
+		
+		// Persistindo na base do usuario2
+		entityManager.persist(usuario2);
+		
+		// Voce quer atualizar o usuario2, porém quer colocar o nome igual ao usuario (Gabriel Ferreira)
+		usuario2.setAutor("Gabriel Ferreira");
+		
+		// Buscando o nosso usuario 
+		Usuario usuarioPesquisado = usuarioRepositorio.buscarAutorUsuarioQuandoForAtualizar(usuario2.getAutor(),usuario2.getId());
+	
+		
+		// Verificando
+		assertThat(usuarioPesquisado).isNotNull();
+	}
+	
+	@Test
+	@DisplayName("Deve retornar usuário nulo quando for buscar o autor na hora de atualizar.")
+	public void deveRetornarUsuarioNuloQuandoForBuscarAutorAtualizar() {
+		
+		Usuario usuario2 = Usuario.builder().id(null).autor("Teste").dataNascimento(new Date()).build();
+		
+		// Buscando o nosso usuario 
+		Usuario usuarioPesquisado = usuarioRepositorio.buscarAutorUsuarioQuandoForAtualizar(usuario2.getAutor(),usuario2.getId());
+	
+		
+		// Verificando
+		assertThat(usuarioPesquisado).isNull();
+	}
+	
 }
