@@ -99,6 +99,24 @@ public class UsuarioServiceTest {
 	}
 	
 	@Test
+	@DisplayName("Deve deletar o usuário pelo id informado.")
+	public void deveDeletarUsuario() {
+
+		// Cenário
+		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		
+		// Quando for buscar o usuário, vai ter que retornar o usuário de cima 
+		doReturn(Optional.of(usuario)).when(usuarioRepositorio).findById(usuario.getId());
+		
+		// Executando método 
+		usuarioService.deletarUsuario(usuario.getId());
+		
+		// Verificação
+		verify(usuarioRepositorio).deleteById(usuario.getId());
+		
+	}
+	
+	@Test
 	@DisplayName("Não deve inserir usuário pois o autor já foi cadastrado anteriomente.")
 	public void naoDeveInserirUsuarioAutorRepetido() {
 		// Cenário já foi construido no criarInstancias()

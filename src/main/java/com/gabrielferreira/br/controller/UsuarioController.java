@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,6 +51,13 @@ public class UsuarioController {
 		usuario = usuarioService.inserir(usuarioDto);
 		CriarUsuarioDTO criarUsuarioDTO = new CriarUsuarioDTO(usuario);
 		return new ResponseEntity<>(criarUsuarioDTO,HttpStatus.NO_CONTENT);
+	}
+	
+	@DeleteMapping("{idUsuario}")
+	public ResponseEntity<Void> deletarUsuario(@PathVariable Long idUsuario){
+		Usuario usuario = usuarioService.getUsuario(idUsuario);
+		usuarioService.deletarUsuario(usuario.getId());
+		return ResponseEntity.noContent().build();
 	}
 	
 	private void verificarCamposUsuario(List<String> verificarCampos) {

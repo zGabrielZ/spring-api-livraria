@@ -26,6 +26,11 @@ public class UsuarioService {
 		return usuarioRepositorio.save(usuario);
 	}
 	
+	@Transactional
+	public void deletarUsuario(Long idUsuario) {
+		usuarioRepositorio.deleteById(idUsuario);
+	}
+	
 	public Usuario getUsuario(Long id) {
 		Optional<Usuario> optionalUsuario = usuarioRepositorio.findById(id);
 		if(!optionalUsuario.isPresent()) {

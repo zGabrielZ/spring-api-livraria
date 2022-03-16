@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
@@ -110,6 +111,27 @@ public class UsuarioControllerTest {
 			.andExpect(jsonPath("dataNascimento").value(sdf.format(usuarioAtualizado.getDataNascimento())));
 		
 	}
+	
+	@Test
+	@DisplayName("Deve deletar usuário pelo id informado.")
+	public void deveDeletarUsuario() throws Exception {
+		
+		// Cenário 
+		Usuario usuario = Usuario.builder().id(133L).autor("Teste usuário").dataNascimento(new Date()).build();
+		
+		// Executando o deletar do usuário
+		when(usuarioService.getUsuario(usuario.getId())).thenReturn(usuario);
+		
+		// Criar uma requisição do tipo delete
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_USUARIO + "/{idUsuario}",usuario.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+				
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNoContent());
+						
+	}
+	
 	
 	@Test
 	@DisplayName("Não deve criar usuário, pois não tem dados suficientes (Nome e data de nascimento não informados).")
@@ -244,6 +266,26 @@ public class UsuarioControllerTest {
 				.andDo(print())
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("mensagem", equalTo("Usuário não encontrado.")));
+	}
+	
+	@Test
+	@DisplayName("Não deve deletar livro pelo id informado pois não encontrou o livro.")
+	public void naoDeveDeletarUsuario() throws Exception {
+		// Cenário 
+		Long idUsuario = 150L;
+		
+		// Executando o deletar do livro
+		when(usuarioService.getUsuario(idUsuario)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
+		
+		// Criar uma requisição do tipo delete
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_USUARIO + "/{idUsuario}",idUsuario).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+				
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("mensagem", equalTo("Usuário não encontrado.")));
+						
 	}
 	
 }
