@@ -28,6 +28,9 @@ public class UsuarioService {
 	
 	@Transactional
 	public void deletarUsuario(Long idUsuario) {
+		if(idUsuario == null) {
+			throw new IllegalArgumentException("Para deletar o usuário é preciso informar o id.");
+		}
 		usuarioRepositorio.deleteById(idUsuario);
 	}
 	

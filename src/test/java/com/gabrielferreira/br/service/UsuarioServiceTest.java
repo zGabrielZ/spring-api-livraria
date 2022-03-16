@@ -191,4 +191,18 @@ public class UsuarioServiceTest {
 		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
 		verify(usuarioRepositorio).findById(anyLong());
 	}
+	
+	@Test
+	@DisplayName("Não deve deletar usuário pois o id não foi informado.")
+	public void naoDeveDeletarUsuario() {
+		
+		// Cenário
+		Usuario usuario = new Usuario();
+		
+		// Executando 
+		Assertions.assertThrows(IllegalArgumentException.class, () -> usuarioService.deletarUsuario(usuario.getId()));
+		
+		// Verificando
+		verify(usuarioRepositorio,never()).delete(usuario);
+	}
 }
