@@ -115,6 +115,21 @@ public class LivroRepositorioTest {
 	}
 	
 	@Test
+	@DisplayName("Deve retornar o livro nulo quando for pesquisar com o isbn na hora de atualizar.")
+	public void deveRetornarNullIsbnLivroQuandoForAtualizar() {
+		
+		// Cenário 
+		usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		livro = Livro.builder().id(1L).usuario(usuario).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+		
+		// Executando
+		Livro livroPesquisado = livroRepositorio.buscarIsbnLivroQuandoForAtualizar(livro.getIsbn(),livro.getId());
+		
+		// Verificando
+		assertThat(livroPesquisado).isNull();	
+	}
+	
+	@Test
 	@DisplayName("Deve retornar como verdadeiro o livro com titulo informado.")
 	public void deveBuscarTituloLivro() {
 		// Cenário
@@ -171,6 +186,21 @@ public class LivroRepositorioTest {
 		
 		// Verificando
 		assertNotNull(livroPesquisado);
+	}
+	
+	@Test
+	@DisplayName("Deve retornar como nulo quando for pesquisar com o titulo quando for atualizar.")
+	public void deveRetornarNullTituloLivroQuandoForAtualizar() {
+		
+		// Cenário 
+		usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		livro = Livro.builder().id(1L).usuario(usuario).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+		
+		// Executando
+		Optional<Livro> livroPesquisado = livroRepositorio.existsByTituloQuandoForAtualizar(livro.getTitulo(),livro.getId());
+		
+		// Verificação
+		assertThat(!livroPesquisado.isPresent()).isTrue();	
 	}
 	
 	@Test
