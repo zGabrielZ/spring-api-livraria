@@ -30,6 +30,8 @@ import com.gabrielferreira.br.repositorio.UsuarioRepositorio;
 @ActiveProfiles("test") // Rodar com o perfil de teste, rodar com o ambiente de teste
 public class UsuarioServiceTest {
 	
+	private static String USUARIO_MSG = "Usuário";
+	
 	private UsuarioService usuarioService;
 	
 	private UsuarioRepositorio usuarioRepositorio;
@@ -105,11 +107,8 @@ public class UsuarioServiceTest {
 		// Cenário
 		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
 		
-		// Quando for buscar o usuário, vai ter que retornar o usuário de cima 
-		doReturn(Optional.of(usuario)).when(usuarioRepositorio).findById(usuario.getId());
-		
 		// Executando método 
-		usuarioService.deletarUsuario(usuario.getId());
+		usuarioService.deletar(usuario.getId(),anyString());
 		
 		// Verificação
 		verify(usuarioRepositorio).deleteById(usuario.getId());
@@ -121,7 +120,7 @@ public class UsuarioServiceTest {
 	public void naoDeveInserirUsuarioAutorRepetido() {
 		// Cenário já foi construido no criarInstancias()
 		
-		// Quando verificar qualquer coisa no verificar autor existete, retorna como true
+		// Quando verificar qualquer coisa no verificar autor existente, retorna como true
 		when(usuarioRepositorio.existsByAutor(criarUsuarioDTO.getAutor())).thenReturn(true);
 		
 		// Execução
@@ -166,7 +165,7 @@ public class UsuarioServiceTest {
 		doReturn(Optional.of(usuario)).when(usuarioRepositorio).findById(anyLong());
 		
 		// Executando o método de buscar
-		Usuario usuarioExistente = usuarioService.getUsuario(anyLong());
+		Usuario usuarioExistente = usuarioService.getDetalhe(usuario.getId(),USUARIO_MSG);
 		
 		// Verificando se foi invocado o find by
 		verify(usuarioRepositorio).findById(anyLong());
@@ -185,7 +184,7 @@ public class UsuarioServiceTest {
 		when(usuarioRepositorio.findById(anyLong())).thenReturn(Optional.empty());
 		
 		// Executando 
-		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class, () -> usuarioService.getUsuario(anyLong()));
+		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class, () -> usuarioService.getDetalhe(anyLong(),USUARIO_MSG));
 		
 		// Verificação
 		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
@@ -200,7 +199,7 @@ public class UsuarioServiceTest {
 		Usuario usuario = new Usuario();
 		
 		// Executando 
-		Assertions.assertThrows(IllegalArgumentException.class, () -> usuarioService.deletarUsuario(usuario.getId()));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> usuarioService.deletar(usuario.getId(),USUARIO_MSG));
 		
 		// Verificando
 		verify(usuarioRepositorio,never()).delete(usuario);

@@ -24,6 +24,8 @@ import com.gabrielferreira.br.validacao.CriarUsuarioValidacao;
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
+	private static String USUARIO_MSG = "Usuário";
+	
 	@Autowired
 	private UsuarioService usuarioService;
 	
@@ -38,7 +40,7 @@ public class UsuarioController {
 	
 	@GetMapping("/{idUsuario}")
 	public ResponseEntity<UsuarioDTO> obterInformacaoUsuario(@PathVariable Long idUsuario){
-		Usuario usuario = usuarioService.getUsuario(idUsuario);
+		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
 		UsuarioDTO usuarioDto = new UsuarioDTO(usuario);
 		return new ResponseEntity<>(usuarioDto,HttpStatus.OK);
 	}
@@ -47,7 +49,7 @@ public class UsuarioController {
 	public ResponseEntity<CriarUsuarioDTO> atualizarUsuario(@PathVariable Long idUsuario, @RequestBody CriarUsuarioDTO usuarioDto){
 		List<String> verificaCampos = CriarUsuarioValidacao.getVerificacaoErrosCriarUsuario(usuarioDto);
 		verificarCamposUsuario(verificaCampos);
-		Usuario usuario = usuarioService.getUsuario(idUsuario);
+		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
 		usuario = usuarioService.inserir(usuarioDto);
 		CriarUsuarioDTO criarUsuarioDTO = new CriarUsuarioDTO(usuario);
 		return new ResponseEntity<>(criarUsuarioDTO,HttpStatus.NO_CONTENT);
@@ -55,8 +57,8 @@ public class UsuarioController {
 	
 	@DeleteMapping("{idUsuario}")
 	public ResponseEntity<Void> deletarUsuario(@PathVariable Long idUsuario){
-		Usuario usuario = usuarioService.getUsuario(idUsuario);
-		usuarioService.deletarUsuario(usuario.getId());
+		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
+		usuarioService.deletar(usuario.getId(),USUARIO_MSG);
 		return ResponseEntity.noContent().build();
 	}
 	

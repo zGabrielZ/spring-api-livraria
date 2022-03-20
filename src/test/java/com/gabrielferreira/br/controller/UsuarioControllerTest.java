@@ -1,7 +1,6 @@
 package com.gabrielferreira.br.controller;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -35,6 +34,7 @@ import com.gabrielferreira.br.service.UsuarioService;
 @AutoConfigureMockMvc // Configuração do teste para configurar os objetos
 public class UsuarioControllerTest {
 
+	private static String USUARIO_MSG = "Usuário";
 	private static String API_USUARIO = "/api/usuarios";
 	private static MediaType JSON_MEDIATYPE = MediaType.APPLICATION_JSON;
 	
@@ -83,14 +83,14 @@ public class UsuarioControllerTest {
 		// Criar a entidade que já está salva no banco do mock
 		Usuario usuarioJaSalvo = Usuario.builder().id(150L).autor("Gabriel Ferriera").dataNascimento(sdf.parse("14/07/1965")).build();
 		
-		// Criando o nosso livro para fazer o update 
+		// Criando o nosso usuário para fazer o update 
 		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(30L).autor("Teste 123").dataNascimento(sdf.parse("26/12/1997")).build();
 		
 		// Criar a entidade que já foi feito o update
 		Usuario usuarioAtualizado = Usuario.builder().id(criarUsuarioDTO.getId()).autor(criarUsuarioDTO.getAutor()).dataNascimento(criarUsuarioDTO.getDataNascimento()).build();
 		
 		// Executando o buscar do usuário
-		when(usuarioService.getUsuario(anyLong())).thenReturn(usuarioJaSalvo);
+		when(usuarioService.getDetalhe(usuarioJaSalvo.getId(),USUARIO_MSG)).thenReturn(usuarioJaSalvo);
 		
 		// Executando o atualizar do usuário
 		when(usuarioService.inserir(any())).thenReturn(usuarioAtualizado);
@@ -120,7 +120,7 @@ public class UsuarioControllerTest {
 		Usuario usuario = Usuario.builder().id(133L).autor("Teste usuário").dataNascimento(new Date()).build();
 		
 		// Executando o deletar do usuário
-		when(usuarioService.getUsuario(usuario.getId())).thenReturn(usuario);
+		when(usuarioService.getDetalhe(usuario.getId(),USUARIO_MSG)).thenReturn(usuario);
 		
 		// Criar uma requisição do tipo delete
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_USUARIO + "/{idUsuario}",usuario.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -184,7 +184,7 @@ public class UsuarioControllerTest {
 		// Cenário
 		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(1L).autor("José Pereira da Silva").dataNascimento(sdf.parse("14/07/1965")).build();
 
-		// Executando o inserir do livro
+		// Executando o inserir do usuário
 		when(usuarioService.inserir(any()))
 				.thenThrow(new RegraDeNegocioException("Este autor já foi cadastrado."));
 
@@ -209,7 +209,7 @@ public class UsuarioControllerTest {
 		// Cenário
 		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(1L).autor("José Pereira da Silva").dataNascimento(sdf.parse("14/07/1965")).build();
 
-		// Executando o inserir do livro
+		// Executando o inserir do usuário
 		when(usuarioService.inserir(any()))
 				.thenThrow(new RegraDeNegocioException("Autor já existente ao atualizar."));
 
@@ -233,8 +233,8 @@ public class UsuarioControllerTest {
 		// Cenário 
 		Usuario usuario = Usuario.builder().id(133L).autor("Teste usuário").dataNascimento(sdf.parse("12/12/1998")).build();
 		
-		// Executando o buscar do livro
-		when(usuarioService.getUsuario(usuario.getId())).thenReturn(usuario);
+		// Executando o buscar do usuário
+		when(usuarioService.getDetalhe(usuario.getId(),USUARIO_MSG)).thenReturn(usuario);
 		
 		// Criar uma requisição do tipo get
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_USUARIO + "/{idUsuario}",usuario.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -256,7 +256,7 @@ public class UsuarioControllerTest {
 		Long idUsuario = 122L;
 
 		// Executando o buscar do usuário
-		when(usuarioService.getUsuario(idUsuario)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
+		when(usuarioService.getDetalhe(idUsuario,USUARIO_MSG)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
 
 		// Criar uma requisição do tipo get
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_USUARIO + "/{idUsuario}",idUsuario).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -274,8 +274,8 @@ public class UsuarioControllerTest {
 		// Cenário 
 		Long idUsuario = 150L;
 		
-		// Executando o deletar do livro
-		when(usuarioService.getUsuario(idUsuario)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
+		// Executando o deletar do usuário
+		when(usuarioService.getDetalhe(idUsuario,USUARIO_MSG)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
 		
 		// Criar uma requisição do tipo delete
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_USUARIO + "/{idUsuario}",idUsuario).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
