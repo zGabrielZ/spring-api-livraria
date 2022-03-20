@@ -22,6 +22,8 @@ import com.gabrielferreira.br.service.LivroService;
 @RequestMapping("/api/livros")
 public class LivroController {
 
+	private static String LIVRO_MSG = "Livro";
+	
 	@Autowired
 	private LivroService livroService;
 	
@@ -34,21 +36,21 @@ public class LivroController {
 	
 	@GetMapping("/{idLivro}")
 	public ResponseEntity<LivroDTO> obterInformacaoLivro(@PathVariable Long idLivro){
-		Livro livro = livroService.getLivro(idLivro);
+		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
 		LivroDTO livroDTO = new LivroDTO(livro);
 		return new ResponseEntity<>(livroDTO,HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/{idLivro}")
 	public ResponseEntity<Void> deletarLivro(@PathVariable Long idLivro){
-		Livro livro = livroService.getLivro(idLivro);
-		livroService.deletarLivro(livro.getId());
+		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
+		livroService.deletar(livro.getId(),LIVRO_MSG);
 		return ResponseEntity.noContent().build();
 	}
 	
 	@PutMapping("/{idLivro}")
 	public ResponseEntity<CriarLivroDTO> atualizarLivro(@PathVariable Long idLivro, @RequestBody @Valid CriarLivroDTO livroDto){
-		Livro livro = livroService.getLivro(idLivro);
+		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
 		livro = livroService.inserir(livroDto);
 		CriarLivroDTO criarLivroDTO = new CriarLivroDTO(livro);
 		return new ResponseEntity<>(criarLivroDTO,HttpStatus.NO_CONTENT);

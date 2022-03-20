@@ -32,6 +32,8 @@ import com.gabrielferreira.br.repositorio.LivroRepositorio;
 @ActiveProfiles("test") // Rodar com o perfil de teste, rodar com o ambiente de teste
 public class LivroServiceTest {
 	
+	private static String [] MENSAGENS = {"Usuário","Livro"};
+	
 	private LivroService livroService;
 	
 	private UsuarioService usuarioService;
@@ -54,7 +56,7 @@ public class LivroServiceTest {
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
 		
 		// Quando for buscar o usuario, vai retornar o usuario mockado 
-		when(usuarioService.getUsuario(anyLong())).thenReturn(usuario);
+		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
 		
 		// Criar a entidade com o id já mockado
 		Livro livroCriado = Livro.builder().id(22L).usuario(usuario).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
@@ -198,7 +200,7 @@ public class LivroServiceTest {
 		// Usuário já está salvo no banco do mockado
 		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
 		// Quando for buscar o usuario, é pra retorna o de cima
-		when(usuarioService.getUsuario(usuario.getId())).thenReturn(usuario);
+		when(usuarioService.getDetalhe(usuario.getId(),MENSAGENS[0])).thenReturn(usuario);
 		
 		// Fazendo o nosso criar livro
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("001").titulo("Teste Livro Gabriel").subtitulo("Teste teste Gabriel")
@@ -227,7 +229,7 @@ public class LivroServiceTest {
 		// Usuário já está salvo no banco do mockado
 		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
 		// Quando for buscar o usuario, é pra retorna o de cima
-		when(usuarioService.getUsuario(usuario.getId())).thenReturn(usuario);
+		when(usuarioService.getDetalhe(usuario.getId(),MENSAGENS[0])).thenReturn(usuario);
 		
 		// Fazendo o nosso criar livro
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("001").titulo("Teste Livro Gabriel").subtitulo("Teste teste Gabriel")
@@ -261,7 +263,7 @@ public class LivroServiceTest {
 		doReturn(Optional.of(livro)).when(livroRepositorio).findById(livro.getId());
 		
 		// Executando o método de buscar
-		Livro livroExistente = livroService.getLivro(livro.getId());
+		Livro livroExistente = livroService.getDetalhe(livro.getId(),MENSAGENS[1]);
 		
 		// Verificando se foi invocado o find by
 		verify(livroRepositorio).findById(anyLong());
@@ -282,7 +284,7 @@ public class LivroServiceTest {
 		when(livroRepositorio.findById(anyLong())).thenReturn(Optional.empty());
 		
 		// Executando 
-		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class, () -> livroService.getLivro(anyLong()));
+		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class, () -> livroService.getDetalhe(anyLong(),MENSAGENS[1]));
 		
 		// Verificação
 		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
@@ -303,7 +305,7 @@ public class LivroServiceTest {
 		doReturn(Optional.of(livro)).when(livroRepositorio).findById(livro.getId());
 		
 		// Executand o método 
-		livroService.deletarLivro(livro.getId());
+		livroService.deletar(livro.getId(),MENSAGENS[1]);
 		
 		// Verificação
 		verify(livroRepositorio).deleteById(livro.getId());
@@ -318,7 +320,7 @@ public class LivroServiceTest {
 		Livro livro = new Livro();
 		
 		// Executando 
-		Assertions.assertThrows(IllegalArgumentException.class, () -> livroService.deletarLivro(livro.getId()));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> livroService.deletar(livro.getId(),MENSAGENS[1]));
 		
 		// Verificando
 		verify(livroRepositorio,never()).delete(livro);
