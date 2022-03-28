@@ -8,7 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,17 +20,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
+import com.gabrielferreira.br.modelo.dto.mostrar.LivroDTO;
+import com.gabrielferreira.br.modelo.dto.mostrar.UsuarioDTO;
 import com.gabrielferreira.br.service.LivroService;
 
 @SpringBootTest
@@ -344,6 +352,50 @@ public class LivroControllerTest {
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("mensagem", equalTo("Livro não encontrado.")));
 		
+	}
+	
+	@Test
+	@DisplayName("Deve buscar livros com parâmetros de paginação e o título do livro.")
+	public void deveBuscarLivrosPaginacao() throws Exception{
+		// Cenário
+		UsuarioDTO usuario = UsuarioDTO.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		List<LivroDTO> livroDTOs = new ArrayList<>();
+		
+		LivroDTO livroDTO = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("002").titulo("Teste Livro 1")
+				.subtitulo("Teste subtitulo 11").sinopse("Teste sinopse 4444").build();
+		LivroDTO livroDTO2 = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("003").titulo("Teste Livro 4")
+				.subtitulo("Teste subtitulo 22").sinopse("Teste sinopse 36543534").build();
+		LivroDTO livroDTO3 = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("004").titulo("Teste Livro 5")
+				.subtitulo("Teste subtitulo 44").sinopse("Teste sinopse 34534543").build();
+		LivroDTO livroDTO4 = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("005").titulo("Teste Livro 6")
+				.subtitulo("Teste subtitulo 66").sinopse("Teste sinopse 4634534").build();
+		LivroDTO livroDTO5 = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("006").titulo("Teste Livro 8")
+				.subtitulo("Teste subtitulo 88").sinopse("Teste sinopse 11233").build();
+		
+		livroDTOs.add(livroDTO);
+		livroDTOs.add(livroDTO2);
+		livroDTOs.add(livroDTO3);
+		livroDTOs.add(livroDTO4);
+		livroDTOs.add(livroDTO5);
+		
+		// Executando o método 
+		Pageable pageable = PageRequest.of(0, 2);
+		when(livroService.buscarLivrosPaginadas("Teste",pageable)).thenReturn(new PageImpl<>(livroDTOs, pageable, 2));
+		
+		// Query da paginação -> /api/livros?pagina=0&totalRegistro=2
+		String queryPagincao = API_LIVROS + "?titulo=Teste&pagina=0&totalRegistro=2";
+		
+		// Criar uma requisição do tipo get
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(queryPagincao).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+				
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("content", Matchers.hasSize(5))) // Total de registros
+				.andExpect(jsonPath("totalElements").value(2)) // Total de conteúdo
+				.andExpect(jsonPath("pageable.pageSize").value(2)) // Tamanho
+				.andExpect(jsonPath("pageable.pageNumber").value(0)); // Número página
 	}
 	
 }

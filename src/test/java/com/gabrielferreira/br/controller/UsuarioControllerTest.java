@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 
 import org.hamcrest.Matchers;
@@ -160,7 +162,11 @@ public class UsuarioControllerTest {
 	public void naoDeveInserirUsuarioTemDataNascimentoEnomeUsuario() throws Exception {
 		
 		// Cenário
-		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(null).autor("Abc").dataNascimento(sdf.parse("26/03/2022")).build();
+		LocalDate dataNascimento = LocalDate.now().plusDays(2);
+		
+		Date dataNascimentoFormat = Date.from(dataNascimento.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		
+		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(null).autor("Abc").dataNascimento(dataNascimentoFormat).build();
 		
 		// Transformar o objto em json
 		ObjectMapper objectMapper = new ObjectMapper();

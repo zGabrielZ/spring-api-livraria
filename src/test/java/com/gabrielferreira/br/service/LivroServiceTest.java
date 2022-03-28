@@ -10,7 +10,9 @@ import static org.mockito.Mockito.when;
 
 import java.text.ParseException;
 import java.util.Optional;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +20,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -26,6 +32,7 @@ import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
+import com.gabrielferreira.br.modelo.dto.mostrar.LivroDTO;
 import com.gabrielferreira.br.repositorio.LivroRepositorio;
 
 @ExtendWith(SpringExtension.class) // O Spring deve rodar um mini contexto de injeção de dependecia para rodar os testes
@@ -324,5 +331,37 @@ public class LivroServiceTest {
 		
 		// Verificando
 		verify(livroRepositorio,never()).delete(livro);
+	}
+	
+	@Test
+	@DisplayName("Deve buscar livros com parâmetros de paginação e o título do livro.")
+	public void deveBuscarLivroPaginado() {
+		
+		// Cenário
+		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		List<Livro> livros = new ArrayList<>();
+
+		Livro livro = Livro.builder().id(50L).usuario(usuario).isbn("002").titulo("Teste Livro 1")
+				.subtitulo("Teste subtitulo 11").sinopse("Teste sinopse 4444").build();
+		Livro livro2 = Livro.builder().id(50L).usuario(usuario).isbn("003").titulo("Teste Livro 4")
+				.subtitulo("Teste subtitulo 22").sinopse("Teste sinopse 36543534").build();
+		
+		livros.add(livro);
+		livros.add(livro2);
+		
+		// Fazendo o mock do método 
+		Pageable pageable = PageRequest.of(0,1);
+		when(livroRepositorio.buscarPorTituloPaginada("Teste",pageable)).thenReturn(new PageImpl<>(livros, pageable, 1));
+		
+		// Executando 
+		Page<LivroDTO> page = livroService.buscarLivrosPaginadas("Teste",pageable);
+		
+		
+		// Verificando 
+		assertThat(page.getContent()).hasSize(2); // Total de registros
+		assertThat(page.getTotalElements()).isEqualTo(1); // Total de conteúdo
+		assertThat(page.getNumber()).isEqualTo(0); // Número página
+		assertThat(page.getSize()).isEqualTo(1); // Tamanho
+		
 	}
 }

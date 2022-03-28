@@ -4,12 +4,15 @@ import java.util.Optional;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
+import com.gabrielferreira.br.modelo.dto.mostrar.LivroDTO;
 import com.gabrielferreira.br.repositorio.LivroRepositorio;
 import com.gabrielferreira.br.service.abstrato.AbstractService;
 
@@ -35,6 +38,12 @@ public class LivroService extends AbstractService<Livro>{
 		verificarTituloExistente(livro);
 		verificarIsbnExistente(livro);
 		return livroRepositorio.save(livro);
+	}
+	
+	public Page<LivroDTO> buscarLivrosPaginadas(String titulo,Pageable pageable){
+		Page<Livro> pageLivro = livroRepositorio.buscarPorTituloPaginada(titulo, pageable);
+		Page<LivroDTO> pageLivroDto = pageLivro.map(l -> new LivroDTO(l));
+		return pageLivroDto;
 	}
 	
 	public void verificarTituloExistente(Livro livro) {
