@@ -55,6 +55,7 @@ public class LivroController {
 	@PutMapping("/{idLivro}")
 	public ResponseEntity<CriarLivroDTO> atualizarLivro(@PathVariable Long idLivro, @RequestBody @Valid CriarLivroDTO livroDto){
 		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
+		livroDto.setId(livro.getId());
 		livro = livroService.inserir(livroDto);
 		CriarLivroDTO criarLivroDTO = new CriarLivroDTO(livro);
 		return new ResponseEntity<>(criarLivroDTO,HttpStatus.NO_CONTENT);

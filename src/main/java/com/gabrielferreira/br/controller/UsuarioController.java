@@ -47,10 +47,14 @@ public class UsuarioController {
 	
 	@PutMapping("/{idUsuario}")
 	public ResponseEntity<CriarUsuarioDTO> atualizarUsuario(@PathVariable Long idUsuario, @RequestBody CriarUsuarioDTO usuarioDto){
+		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
+		
 		List<String> verificaCampos = CriarUsuarioValidacao.getVerificacaoErrosCriarUsuario(usuarioDto);
 		verificarCamposUsuario(verificaCampos);
-		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
+		
+		usuarioDto.setId(usuario.getId());
 		usuario = usuarioService.inserir(usuarioDto);
+		
 		CriarUsuarioDTO criarUsuarioDTO = new CriarUsuarioDTO(usuario);
 		return new ResponseEntity<>(criarUsuarioDTO,HttpStatus.NO_CONTENT);
 	}

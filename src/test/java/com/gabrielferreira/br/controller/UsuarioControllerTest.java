@@ -86,7 +86,7 @@ public class UsuarioControllerTest {
 		Usuario usuarioJaSalvo = Usuario.builder().id(150L).autor("Gabriel Ferriera").dataNascimento(sdf.parse("14/07/1965")).build();
 		
 		// Criando o nosso usuário para fazer o update 
-		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(30L).autor("Teste 123").dataNascimento(sdf.parse("26/12/1997")).build();
+		CriarUsuarioDTO criarUsuarioDTO = CriarUsuarioDTO.builder().id(150L).autor("Teste 123").dataNascimento(sdf.parse("26/12/1997")).build();
 		
 		// Criar a entidade que já foi feito o update
 		Usuario usuarioAtualizado = Usuario.builder().id(criarUsuarioDTO.getId()).autor(criarUsuarioDTO.getAutor()).dataNascimento(criarUsuarioDTO.getDataNascimento()).build();
