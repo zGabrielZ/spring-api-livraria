@@ -8,7 +8,10 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
@@ -24,6 +27,7 @@ import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarUsuarioDTO;
+import com.gabrielferreira.br.modelo.dto.mostrar.UsuarioDTO;
 import com.gabrielferreira.br.repositorio.UsuarioRepositorio;
 
 @ExtendWith(SpringExtension.class) // O Spring deve rodar um mini contexto de injeção de dependecia para rodar os testes
@@ -203,5 +207,43 @@ public class UsuarioServiceTest {
 		
 		// Verificando
 		verify(usuarioRepositorio,never()).delete(usuario);
+	}
+	
+	@Test
+	@DisplayName("Deve mostrar lista de usários cadastrados.")
+	public void deveMostrarListaDeUsuarios() {
+		// Cenário 
+		List<Usuario> usuarios = new ArrayList<Usuario>();
+		usuarios.add(Usuario.builder().id(1L).autor("José da Silva").dataNascimento(new Date()).build());
+		usuarios.add(Usuario.builder().id(2L).autor("Marcos da Silva").dataNascimento(new Date()).build());
+		usuarios.add(Usuario.builder().id(3L).autor("Natália da Silva").dataNascimento(new Date()).build());
+		usuarios.add(Usuario.builder().id(4L).autor("Josué da Silva").dataNascimento(new Date()).build());
+		
+		// Mockando o resultado de usuários 
+		when(usuarioRepositorio.findAll()).thenReturn(usuarios);
+		
+		// Executando o método
+		List<UsuarioDTO> usuarioDTOs = usuarioService.mostrarUsuarios();
+		
+		// Verificando se foi invocado
+		verify(usuarioRepositorio).findAll();
+		
+		// Verificando
+		assertThat(usuarioDTOs).hasSize(4);
+	}
+	
+	@Test
+	@DisplayName("Não deve mostrar lista de usários pois ninguem foi cadastrado.")
+	public void naoDeveMostrarListaDeUsuarios() {
+		// Cenário
+		when(usuarioRepositorio.findAll()).thenReturn(new ArrayList<>());
+
+		// Executando
+		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class,
+				() -> usuarioService.mostrarUsuarios());
+
+		// Verificação
+		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
+		verify(usuarioRepositorio).findAll();
 	}
 }

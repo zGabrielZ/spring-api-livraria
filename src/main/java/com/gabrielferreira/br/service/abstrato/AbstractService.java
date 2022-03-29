@@ -1,4 +1,5 @@
 package com.gabrielferreira.br.service.abstrato;
+import java.util.List;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
@@ -28,6 +29,10 @@ public class AbstractService<T> {
 			throw new EntidadeNotFoundException(mensagem+" não encontrado.");
 		}
 		return optionalEntidade.get();
+	}
+	
+	public List<T> getLista(){
+		return jpaRepository.findAll();
 	}
 	
 

@@ -45,6 +45,12 @@ public class UsuarioController {
 		return new ResponseEntity<>(usuarioDto,HttpStatus.OK);
 	}
 	
+	@GetMapping
+	public ResponseEntity<List<UsuarioDTO>> listaDeUsuariosPaginada(){
+		List<UsuarioDTO> usuarios = usuarioService.mostrarUsuarios();
+		return new ResponseEntity<>(usuarios,HttpStatus.OK);
+	}
+	
 	@PutMapping("/{idUsuario}")
 	public ResponseEntity<CriarUsuarioDTO> atualizarUsuario(@PathVariable Long idUsuario, @RequestBody CriarUsuarioDTO usuarioDto){
 		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);

@@ -9,7 +9,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +32,7 @@ import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarUsuarioDTO;
+import com.gabrielferreira.br.modelo.dto.mostrar.UsuarioDTO;
 import com.gabrielferreira.br.service.UsuarioService;
 
 @SpringBootTest
@@ -292,6 +296,50 @@ public class UsuarioControllerTest {
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("mensagem", equalTo("Usuário não encontrado.")));
 						
+	}
+	
+	@Test
+	@DisplayName("Deve buscar o usuários cadastrados.")
+	public void deveBuscarUsuarios() throws Exception {
+		// Cenário 
+		Usuario usuario1 = Usuario.builder().id(133L).autor("Teste usuário 0").dataNascimento(sdf.parse("12/12/1998")).build();
+		Usuario usuario2 = Usuario.builder().id(134L).autor("Teste usuário 1").dataNascimento(sdf.parse("12/12/1998")).build();
+		
+		List<Usuario> usuarios = new ArrayList<Usuario>();
+		usuarios.add(usuario1);
+		usuarios.add(usuario2);
+		
+		// Executando o buscar do usuário
+		List<UsuarioDTO> usuarioDTOs = usuarios.stream().map(u -> new UsuarioDTO(u)).collect(Collectors.toList());
+		when(usuarioService.mostrarUsuarios()).thenReturn(usuarioDTOs);
+		
+		// Criar uma requisição do tipo get
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_USUARIO).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+		
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[*]",Matchers.hasSize(2)));
+	}
+	
+	@Test
+	@DisplayName("Não deve buscar o usuários, pois nenhum foi cadastrado.")
+	public void naoDeveBuscarUsuarios() throws Exception {
+		
+		// Cenário
+
+		// Executando o buscar do usuário
+		when(usuarioService.mostrarUsuarios()).thenThrow(new EntidadeNotFoundException("Nenhum usuário encontrado."));
+
+		// Criar uma requisição do tipo get
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_USUARIO).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("mensagem", equalTo("Nenhum usuário encontrado.")));
 	}
 	
 }

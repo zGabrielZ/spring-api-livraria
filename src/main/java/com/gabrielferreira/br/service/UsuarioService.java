@@ -1,12 +1,18 @@
 package com.gabrielferreira.br.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+
+import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarUsuarioDTO;
+import com.gabrielferreira.br.modelo.dto.mostrar.UsuarioDTO;
 import com.gabrielferreira.br.repositorio.UsuarioRepositorio;
 import com.gabrielferreira.br.service.abstrato.AbstractService;
 
@@ -25,6 +31,15 @@ public class UsuarioService extends AbstractService<Usuario>{
 		Usuario usuario = new Usuario(criarUsuarioDTO.getId(), criarUsuarioDTO.getAutor(), criarUsuarioDTO.getDataNascimento(), null);
 		verificarAutorExistente(usuario);
 		return usuarioRepositorio.save(usuario);
+	}
+	
+	public List<UsuarioDTO> mostrarUsuarios(){
+		List<Usuario> usuarios = getLista();
+		if(usuarios.isEmpty()) {
+			throw new EntidadeNotFoundException("Nenhum usuário encontrado.");
+		}
+		List<UsuarioDTO> usuarioDTOs = usuarios.stream().map(u -> new UsuarioDTO(u)).collect(Collectors.toList());
+		return usuarioDTOs;
 	}
 	
 	public void verificarAutorExistente(Usuario usuario) {
