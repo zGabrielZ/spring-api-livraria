@@ -47,7 +47,7 @@ public class UsuarioServiceTest {
 		usuarioRepositorio = Mockito.mock(UsuarioRepositorio.class);
 		usuarioService = new UsuarioService(usuarioRepositorio);
 		
-		criarUsuarioDTO = CriarUsuarioDTO.builder().id(null).autor("José da Silva").dataNascimento(new Date()).build();
+		criarUsuarioDTO = CriarUsuarioDTO.builder().id(null).autor("José Da Silva").dataNascimento(new Date()).build();
 	}
 	
 	@Test
@@ -72,6 +72,43 @@ public class UsuarioServiceTest {
 		assertThat(usuarioSalvo.getAutor()).isEqualTo(criarUsuarioDTO.getAutor());
 		assertThat(usuarioSalvo.getDataNascimento()).isEqualTo(criarUsuarioDTO.getDataNascimento());
 		
+	}
+	
+	@Test
+	@DisplayName("Deve verificar casos da verificação do nome do usuário informado.")
+	public void deveVerificarFormatoNome() {
+		// Cenário 
+		String nome1 = " Gabriel Ferreira ";
+		String nome2 = "gAbrIel ferreira ";
+		String nome3 = "GABRIEL FERREIRA";
+		String nome4 = "gabriel";
+		String nome5 = "GABRIEL";
+		String nome6 = "GABRIEL         ";
+		String nome7 = "      GABRIEL      ";
+		String nome8 = "      GABRIEL      FERREIRA        ";
+		String nome9 = "      GABRIEL      FERREIRA        silva";
+		
+		// Executando o método do formato 
+		String nomeF1 = usuarioService.getFormatoNome(nome1);
+		String nomeF2 = usuarioService.getFormatoNome(nome2);
+		String nomeF3 = usuarioService.getFormatoNome(nome3);
+		String nomeF4 = usuarioService.getFormatoNome(nome4);
+		String nomeF5 = usuarioService.getFormatoNome(nome5);
+		String nomeF6 = usuarioService.getFormatoNome(nome6);
+		String nomeF7 = usuarioService.getFormatoNome(nome7);
+		String nomeF8 = usuarioService.getFormatoNome(nome8);
+		String nomeF9 = usuarioService.getFormatoNome(nome9);
+		
+		// Verificando
+		assertThat(nomeF1).isEqualTo("Gabriel Ferreira");
+		assertThat(nomeF2).isEqualTo("Gabriel Ferreira");
+		assertThat(nomeF3).isEqualTo("Gabriel Ferreira");
+		assertThat(nomeF4).isEqualTo("Gabriel");
+		assertThat(nomeF5).isEqualTo("Gabriel");
+		assertThat(nomeF6).isEqualTo("Gabriel");
+		assertThat(nomeF7).isEqualTo("Gabriel");
+		assertThat(nomeF8).isEqualTo("Gabriel Ferreira");
+		assertThat(nomeF9).isEqualTo("Gabriel Ferreira Silva");
 	}
 	
 	@Test
