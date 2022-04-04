@@ -9,10 +9,19 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +37,7 @@ import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarUsuarioDTO;
 import com.gabrielferreira.br.modelo.dto.mostrar.UsuarioDTO;
+import com.gabrielferreira.br.modelo.dto.procurar.ProcurarUsuarioDTO;
 import com.gabrielferreira.br.repositorio.UsuarioRepositorio;
 
 @ExtendWith(SpringExtension.class) // O Spring deve rodar um mini contexto de injeção de dependecia para rodar os testes
@@ -40,14 +50,41 @@ public class UsuarioServiceTest {
 	
 	private UsuarioRepositorio usuarioRepositorio;
 	
+	private EntityManager entityManager;
+	
 	private CriarUsuarioDTO criarUsuarioDTO;
+	
+	private CriteriaBuilder criteriaBuilder;
+	
+	private CriteriaQuery<Usuario> criteriaQuery;
+	
+	private Root<Usuario> root;
+	
+	private TypedQuery<Usuario> typedQuery;
+	
+	private Predicate predicateAutor;
+	private Predicate predicateDataNascimentoInicio;
+	private Predicate predicateDataNascimentoFinal;
 	
 	@BeforeEach
 	public void criarInstancias() {
 		usuarioRepositorio = Mockito.mock(UsuarioRepositorio.class);
-		usuarioService = new UsuarioService(usuarioRepositorio);
+		entityManager = Mockito.mock(EntityManager.class);
+		usuarioService = new UsuarioService(usuarioRepositorio,entityManager);
 		
 		criarUsuarioDTO = CriarUsuarioDTO.builder().id(null).autor("José Da Silva").dataNascimento(new Date()).build();
+	}
+	
+	@BeforeEach
+	@SuppressWarnings("unchecked")
+	public void criarInstanciasConsulta() {
+		criteriaBuilder = Mockito.mock(CriteriaBuilder.class);
+		criteriaQuery = Mockito.mock(CriteriaQuery.class);
+		root = Mockito.mock(Root.class);
+		predicateAutor = Mockito.mock(Predicate.class);
+		predicateDataNascimentoInicio = Mockito.mock(Predicate.class);
+		predicateDataNascimentoFinal = Mockito.mock(Predicate.class);
+		typedQuery = Mockito.mock(TypedQuery.class);
 	}
 	
 	@Test
@@ -282,5 +319,143 @@ public class UsuarioServiceTest {
 		// Verificação
 		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
 		verify(usuarioRepositorio).findAll();
+	}
+	
+	// fazer os testes de service, paginacao do controller, e depois comentar o codigo,documentar swagger
+	@Test
+	@DisplayName("Deve mostrar lista de usuários com todos os parametros informados.")
+	public void deveMostrarListaDeUsuariosParametros() throws ParseException {
+		
+		// Cenário 
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		ProcurarUsuarioDTO procurarUsuarioDTO = ProcurarUsuarioDTO.builder().autor("Gabriel").dataNascimentoInicio(sdf.parse("04/04/2022"))
+					.dataNascimentoFinal(sdf.parse("05/04/2022"))
+					.build();
+		
+		List<Usuario> usuarios = new ArrayList<Usuario>();
+		usuarios.add(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build());
+		usuarios.add(Usuario.builder().id(2L).autor("Gabriel 2").dataNascimento(new Date()).build());
+		usuarios.add(Usuario.builder().id(3L).autor("Gabriel 3").dataNascimento(new Date()).build());
+		usuarios.add(Usuario.builder().id(4L).autor("Gabriel 4").dataNascimento(new Date()).build());
+		usuarios.add(Usuario.builder().id(5L).autor("Gabriel 5").dataNascimento(new Date()).build());
+		
+		condicaoConsultaTeste(procurarUsuarioDTO);
+		
+		when(criteriaBuilder.like(root.get("autor"), "%" + procurarUsuarioDTO.getAutor()+ "%")).thenReturn(predicateAutor);
+		when(criteriaBuilder.greaterThanOrEqualTo(root.get("dataNascimento"), procurarUsuarioDTO.getDataNascimentoInicio())).thenReturn(predicateDataNascimentoInicio);
+		when(criteriaBuilder.lessThanOrEqualTo(root.get("dataNascimento"), procurarUsuarioDTO.getDataNascimentoFinal())).thenReturn(predicateDataNascimentoFinal);
+		when(typedQuery.getResultList()).thenReturn(usuarios);
+		
+		// Executando
+		List<UsuarioDTO> usuarioDTOs = usuarioService.filtroUsuarios(procurarUsuarioDTO);
+		
+		// Verificando
+		assertThat(usuarioDTOs).hasSize(5);
+		
+	}
+	
+	@Test
+	@DisplayName("Deve mostrar lista de usuários somente a data nascimento final informado.")
+	public void deveMostrarListaDeUsuariosParametrosDataFinal() throws ParseException {
+		
+		// Cenário 
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		ProcurarUsuarioDTO procurarUsuarioDTO = ProcurarUsuarioDTO.builder().autor(null).dataNascimentoInicio(null)
+					.dataNascimentoFinal(sdf.parse("05/04/2022"))
+					.build();
+		
+		List<Usuario> usuarios = new ArrayList<Usuario>();
+		usuarios.add(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build());
+		usuarios.add(Usuario.builder().id(2L).autor("Gabriel 2").dataNascimento(new Date()).build());
+		
+		condicaoConsultaTeste(procurarUsuarioDTO);
+		
+		when(criteriaBuilder.lessThanOrEqualTo(root.get("dataNascimento"), procurarUsuarioDTO.getDataNascimentoFinal())).thenReturn(predicateDataNascimentoFinal);
+		when(typedQuery.getResultList()).thenReturn(usuarios);
+		
+		// Executando
+		List<UsuarioDTO> usuarioDTOs = usuarioService.filtroUsuarios(procurarUsuarioDTO);
+		
+		// Verificando
+		assertThat(usuarioDTOs).hasSize(2);
+		
+	}
+	
+	@Test
+	@DisplayName("Deve mostrar lista de usuários somente a data nascimento inicial informado.")
+	public void deveMostrarListaDeUsuariosParametrosDataInicio() throws ParseException {
+		
+		// Cenário 
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		ProcurarUsuarioDTO procurarUsuarioDTO = ProcurarUsuarioDTO.builder().autor(null).dataNascimentoInicio(sdf.parse("05/04/2022"))
+					.dataNascimentoFinal(null).build();
+		
+		List<Usuario> usuarios = new ArrayList<Usuario>();
+		usuarios.add(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build());
+		usuarios.add(Usuario.builder().id(2L).autor("Gabriel 2").dataNascimento(new Date()).build());
+		
+		condicaoConsultaTeste(procurarUsuarioDTO);
+		
+		when(criteriaBuilder.greaterThanOrEqualTo(root.get("dataNascimento"), procurarUsuarioDTO.getDataNascimentoInicio())).thenReturn(predicateDataNascimentoInicio);
+		when(typedQuery.getResultList()).thenReturn(usuarios);
+		
+		// Executando
+		List<UsuarioDTO> usuarioDTOs = usuarioService.filtroUsuarios(procurarUsuarioDTO);
+		
+		// Verificando
+		assertThat(usuarioDTOs).hasSize(2);
+		
+	}
+	
+	@Test
+	@DisplayName("Não deve mostrar lista de usuários com os parametros informados pois não encontrou nenhum usuário.")
+	public void naoDeveMostrarListaDeUsuariosParametros() throws ParseException{
+		// Cenário 
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		
+		ProcurarUsuarioDTO procurarUsuarioDTO = ProcurarUsuarioDTO.builder().autor("Gabriel").dataNascimentoInicio(sdf.parse("04/04/2022"))
+						.dataNascimentoFinal(sdf.parse("05/04/2022"))
+						.build();
+		
+		condicaoConsultaTeste(procurarUsuarioDTO);
+		
+		
+		when(criteriaBuilder.like(root.get("autor"), "%" + procurarUsuarioDTO.getAutor()+ "%")).thenReturn(predicateAutor);
+		when(criteriaBuilder.greaterThanOrEqualTo(root.get("dataNascimento"), procurarUsuarioDTO.getDataNascimentoInicio())).thenReturn(predicateDataNascimentoInicio);
+		when(criteriaBuilder.lessThanOrEqualTo(root.get("dataNascimento"), procurarUsuarioDTO.getDataNascimentoFinal())).thenReturn(predicateDataNascimentoFinal);
+		when(typedQuery.getResultList()).thenReturn(new ArrayList<>());
+		
+		// Executando
+		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class,
+					() -> usuarioService.filtroUsuarios(procurarUsuarioDTO));
+		
+		// Verificação
+		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
+	}
+	
+	@Test
+	@DisplayName("Não deve mostrar lista de usuários com os parametros informados pois não a data nascimento inicial é maior do que a final.")
+	public void naoDeveMostrarListaDeUsuariosDataIncorreta() throws ParseException{
+		// Cenário 
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		ProcurarUsuarioDTO procurarUsuarioDTO = ProcurarUsuarioDTO.builder().autor("Gabriel").dataNascimentoInicio(sdf.parse("10/04/2022"))
+						.dataNascimentoFinal(sdf.parse("05/04/2022"))
+						.build();
+		
+		condicaoConsultaTeste(procurarUsuarioDTO);
+		
+		// Executando
+		Throwable exception = Assertions.assertThrows(RegraDeNegocioException.class,
+					() -> usuarioService.filtroUsuarios(procurarUsuarioDTO));
+		
+		// Verificação
+		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
+	}
+	
+	private void condicaoConsultaTeste(ProcurarUsuarioDTO procurarUsuarioDTO) {
+		when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+		when(criteriaBuilder.createQuery(Usuario.class)).thenReturn(criteriaQuery);
+		when(criteriaQuery.from(Usuario.class)).thenReturn(root);
+		when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
 	}
 }

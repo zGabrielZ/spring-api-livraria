@@ -5,7 +5,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -33,6 +32,7 @@ import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarUsuarioDTO;
 import com.gabrielferreira.br.modelo.dto.mostrar.UsuarioDTO;
+import com.gabrielferreira.br.modelo.dto.procurar.ProcurarUsuarioDTO;
 import com.gabrielferreira.br.service.UsuarioService;
 
 @SpringBootTest
@@ -340,6 +340,94 @@ public class UsuarioControllerTest {
 				.andDo(print())
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("mensagem", equalTo("Nenhum usuário encontrado.")));
+	}
+	
+	@Test
+	@DisplayName("Deve mostrar uma lista de usuários com os parametros informados.")
+	public void deveMostrarUsuariosFiltro() throws Exception{
+		// Cenário
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		ProcurarUsuarioDTO procurarUsuarioDTO = ProcurarUsuarioDTO.builder().autor("Gabriel")
+				.dataNascimentoInicio(sdf.parse("04/04/2022")).dataNascimentoFinal(sdf.parse("05/04/2022")).build();
+
+		// Fazendo a listagem de usuários
+		List<UsuarioDTO> usuarios = new ArrayList<UsuarioDTO>();
+		usuarios.add(UsuarioDTO.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build());
+		usuarios.add(UsuarioDTO.builder().id(2L).autor("Gabriel 2").dataNascimento(new Date()).build());
+		usuarios.add(UsuarioDTO.builder().id(3L).autor("Gabriel 3").dataNascimento(new Date()).build());
+		
+		// Executando o buscar do usuários filtro
+		when(usuarioService.filtroUsuarios(any(ProcurarUsuarioDTO.class)))
+				.thenReturn(usuarios);
+
+		// Criar uma requisição do tipo get
+		String queryPaginacao = API_USUARIO + "/filtro?autor=" + procurarUsuarioDTO.getAutor()
+				+ "&dataNascimentoInicio=" + sdf.format(procurarUsuarioDTO.getDataNascimentoInicio())
+				+ "&dataNascimentoFinal=" + sdf.format(procurarUsuarioDTO.getDataNascimentoFinal())
+				+"&pagina="+0
+				+"&totalRegistro="+2;
+
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(queryPaginacao).accept(JSON_MEDIATYPE)
+				.contentType(JSON_MEDIATYPE);
+
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("source",Matchers.hasSize(3))) // Total de registros que foi buscado sem filtro
+			.andExpect(jsonPath("pageSize").value(2)) // Quantidade de registro com o filtro
+			.andExpect(jsonPath("pageList",Matchers.hasSize(2))) // Total de registro que foi buscado com filtro
+			.andExpect(jsonPath("page").value(0)); // Página que foi informado no parametro
+	}
+	
+	@Test
+	@DisplayName("Não deve retornar usuários pois não tem usuários cadastrados.")
+	public void naoDeveMostrarUsuariosSemUsuario() throws Exception{
+		// Cenário 
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		ProcurarUsuarioDTO procurarUsuarioDTO = ProcurarUsuarioDTO.builder().autor("Gabriel").dataNascimentoInicio(sdf.parse("04/04/2022"))
+				.dataNascimentoFinal(sdf.parse("05/04/2022"))
+				.build();
+		
+		// Executando o buscar do usuários filtro
+		when(usuarioService.filtroUsuarios(any(ProcurarUsuarioDTO.class))).thenThrow(new EntidadeNotFoundException("Nenhum usuário encontrado."));
+		
+		// Criar uma requisição do tipo get
+		String queryPaginacao = API_USUARIO + "/filtro?autor="+procurarUsuarioDTO.getAutor()+"&dataNascimentoInicio="+sdf.format(procurarUsuarioDTO.getDataNascimentoInicio())
+				+"&dataNascimentoFinal="+sdf.format(procurarUsuarioDTO.getDataNascimentoFinal());
+		
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(queryPaginacao).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+		
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("mensagem", equalTo("Nenhum usuário encontrado.")));
+	}
+	
+	@Test
+	@DisplayName("Não deve retornar usuários pois a data nascimento inicial é maior do que a data nascimento final.")
+	public void naoDeveMostrarUsuariosParametroErrado() throws Exception{
+		// Cenário 
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		ProcurarUsuarioDTO procurarUsuarioDTO = ProcurarUsuarioDTO.builder().autor("Gabriel").dataNascimentoInicio(sdf.parse("20/04/2022"))
+					.dataNascimentoFinal(sdf.parse("05/04/2022"))
+					.build();
+				
+		// Executando o buscar do usuários filtro
+		when(usuarioService.filtroUsuarios(any(ProcurarUsuarioDTO.class))).thenThrow(new RegraDeNegocioException("Data de nascimento início não pode ser maior do que a data nascimento final."));
+				
+		// Criar uma requisição do tipo get
+		String queryPaginacao = API_USUARIO + "/filtro?autor="+procurarUsuarioDTO.getAutor()+"&dataNascimentoInicio="+sdf.format(procurarUsuarioDTO.getDataNascimentoInicio())
+				+"&dataNascimentoFinal="+sdf.format(procurarUsuarioDTO.getDataNascimentoFinal());
+			
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(queryPaginacao).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+				
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("mensagem", equalTo("Data de nascimento início não pode ser maior do que a data nascimento final.")));
 	}
 	
 }
