@@ -25,8 +25,14 @@ import com.gabrielferreira.br.modelo.dto.procurar.ProcurarUsuarioDTO;
 import com.gabrielferreira.br.service.UsuarioService;
 import com.gabrielferreira.br.validacao.CriarUsuarioValidacao;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
 @RestController
 @RequestMapping("/api/usuarios")
+@Api("Usuário API")
 public class UsuarioController {
 
 	private static String USUARIO_MSG = "Usuário";
@@ -35,6 +41,14 @@ public class UsuarioController {
 	private UsuarioService usuarioService;
 	
 	@PostMapping
+	@ApiOperation("Inserir um usuário")
+	@ApiResponses(value = {
+			@ApiResponse(code = 201,message = "Inseriu o usuário com sucesso"),
+			@ApiResponse(code = 400,message = "Ocorreu um erro personalizado"),
+			@ApiResponse(code = 401,message = "Não autorizado para inserir o usuário"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o usuário"),
+	})
 	public ResponseEntity<CriarUsuarioDTO> criarUsuario(@RequestBody CriarUsuarioDTO usuarioDto){
 		List<String> verificaCampos = CriarUsuarioValidacao.getVerificacaoErrosCriarUsuario(usuarioDto);
 		verificarCamposUsuario(verificaCampos);
@@ -44,6 +58,12 @@ public class UsuarioController {
 	}
 	
 	@GetMapping("/{idUsuario}")
+	@ApiOperation("Obtém informação de um usuário por ID")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401,message = "Não autorizado para consultar o usuário"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o usuário"),
+	})
 	public ResponseEntity<UsuarioDTO> obterInformacaoUsuario(@PathVariable Long idUsuario){
 		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
 		UsuarioDTO usuarioDto = new UsuarioDTO(usuario);
@@ -51,12 +71,24 @@ public class UsuarioController {
 	}
 	
 	@GetMapping
-	public ResponseEntity<List<UsuarioDTO>> listaDeUsuariosPaginada(){
+	@ApiOperation("Lista de usuários")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401,message = "Não autorizado para consultar os usuários"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o usuário"),
+	})
+	public ResponseEntity<List<UsuarioDTO>> listaDeUsuarios(){
 		List<UsuarioDTO> usuarios = usuarioService.mostrarUsuarios();
 		return new ResponseEntity<>(usuarios,HttpStatus.OK);
 	}
 	
 	@GetMapping("/filtro")
+	@ApiOperation("Paginação da listagem de usuários")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401,message = "Não autorizado para consultar os usuários"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o usuário"),
+	})
 	public ResponseEntity<PagedListHolder<UsuarioDTO>> listaDeUsuariosFiltro(
 			@RequestParam(required = false) String autor,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date dataNascimentoInicio,
@@ -74,6 +106,13 @@ public class UsuarioController {
 	}
 	
 	@PutMapping("/{idUsuario}")
+	@ApiOperation("Atualizar um usuário informando o ID")
+	@ApiResponses(value = {
+			@ApiResponse(code = 201,message = "Atualizou o usuário com sucesso"),
+			@ApiResponse(code = 401,message = "Não autorizado para atualizar o usuário"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o usuário"),
+	})
 	public ResponseEntity<CriarUsuarioDTO> atualizarUsuario(@PathVariable Long idUsuario, @RequestBody CriarUsuarioDTO usuarioDto){
 		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
 		
@@ -88,6 +127,15 @@ public class UsuarioController {
 	}
 	
 	@DeleteMapping("{idUsuario}")
+	@ApiOperation("Deletar um usuário por ID")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200,message = "Retornou os valores com sucesso"),
+			@ApiResponse(code = 204,message = "Usuário deletado com sucesso"),
+			@ApiResponse(code = 400,message = "Ocorreu um erro personalizado"),
+			@ApiResponse(code = 401,message = "Não autorizado para deletar o usuário"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o usuário"),
+	})
 	public ResponseEntity<Void> deletarUsuario(@PathVariable Long idUsuario){
 		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
 		usuarioService.deletar(usuario.getId(),USUARIO_MSG);
