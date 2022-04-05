@@ -192,6 +192,54 @@ public class LivroControllerTest {
 	}
 	
 	@Test
+	@DisplayName("Não deve inserir livro pois tem mais de 13 caracteres no campo ISBN.")
+	public void naoDeveInserirLivroCaracteresIsbn() throws Exception{
+		// Cénario
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId())
+				.isbn("0014309823480932840238048230").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+	
+		// Executando o verificar campo ISBN 
+		when(livroService.inserir(any())).thenThrow(new RegraDeNegocioException("O limite de caracteres do ISBN é até 13."));
+		
+		// Transformar o objeto em json
+		String json = new ObjectMapper().writeValueAsString(criarLivroDTO);
+		
+		// Criar uma requisição do tipo post
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(API_LIVROS).accept(JSON_MEDIATYPE)
+						.contentType(JSON_MEDIATYPE).content(json);
+		
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("mensagem", equalTo("O limite de caracteres do ISBN é até 13.")));
+	}
+	
+	@Test
+	@DisplayName("Não deve inserir livro pois o ISBN tem que ser numérico.")
+	public void naoDeveInserirLivroNumericoIsbn() throws Exception{
+		// Cénario
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId())
+					.isbn("asasaasdfdgdhrtghdhdrthrth").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+			
+		// Executando o verificar campo ISBN 
+		when(livroService.inserir(any())).thenThrow(new RegraDeNegocioException("É necessário inserir somente numérico para o ISBN."));
+				
+		// Transformar o objeto em json
+		String json = new ObjectMapper().writeValueAsString(criarLivroDTO);
+				
+		// Criar uma requisição do tipo post
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(API_LIVROS).accept(JSON_MEDIATYPE)
+						.contentType(JSON_MEDIATYPE).content(json);
+				
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+					.andDo(print())
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("mensagem", equalTo("É necessário inserir somente numérico para o ISBN.")));
+	}
+	
+	@Test
 	@DisplayName("Deve buscar o livro com o id informado.")
 	public void deveBuscarLivro() throws Exception {
 		// Cenário 

@@ -60,7 +60,7 @@ public class LivroServiceTest {
 		
 		// Cenário
 		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
-		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("123").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
 		
 		// Quando for buscar o usuario, vai retornar o usuario mockado 
 		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
@@ -171,8 +171,12 @@ public class LivroServiceTest {
 		// Cénario
 		// Criando o nosso livro para fazer o update
 		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
+		
+		// Quando buscar o id do usuário, tem que retornar o usuário já cadastrado
+		when(usuarioService.getDetalhe(anyLong(), any())).thenReturn(usuarioAtualizar);
+		
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002")
-				.titulo("Teste Livro atualizar").subtitulo("Teste subtitulo atualizar")
+				.titulo("Teste Livro Atualizar").subtitulo("Teste subtitulo atualizar")
 				.sinopse("Teste sinopse atualizar").build();
 
 		// Entidade que já esta salva no banco do mock
@@ -252,6 +256,56 @@ public class LivroServiceTest {
 		Throwable exception = Assertions.assertThrows(RegraDeNegocioException.class, () -> livroService.inserir(criarLivroDTO));
 		
 		// Verificação
+		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
+		verify(livroRepositorio,never()).save(any());
+	}
+	
+	@Test
+	@DisplayName("Não deve inserir o livro pois tem mais de 13 caracteres do ISBN.")
+	public void naoDeveInserirLivroCaracteresIsbn() {
+		// Cenário
+		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId())
+				.isbn("1233333333333333333333333333333333").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+		
+		// Quando for buscar o usuario, vai retornar o usuario mockado 
+		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
+		
+		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou seja não existe isbn repetido
+		when(livroRepositorio.buscarIsbnLivro(criarLivroDTO.getIsbn())).thenReturn(null);
+				
+		// Quando for verificar o titulo cadastrado, é pra retorna como false, ou seja não existe titulo cadastrado
+		when(livroRepositorio.existsByTitulo(criarLivroDTO.getTitulo())).thenReturn(false);
+		
+		// Executando 
+		Throwable exception = Assertions.assertThrows(RegraDeNegocioException.class, () -> livroService.inserir(criarLivroDTO));
+	
+		// Verificando
+		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
+		verify(livroRepositorio,never()).save(any());
+	}
+	
+	@Test
+	@DisplayName("Não deve inserir o livro pois o ISBN não é numérico.")
+	public void naoDeveInserirLivroNumericoIsbn() {
+		// Cenário
+		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId())
+					.isbn("uifghiauerhfiueshriuferu").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+				
+		// Quando for buscar o usuario, vai retornar o usuario mockado 
+		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
+				
+		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou seja não existe isbn repetido
+		when(livroRepositorio.buscarIsbnLivro(criarLivroDTO.getIsbn())).thenReturn(null);
+						
+		// Quando for verificar o titulo cadastrado, é pra retorna como false, ou seja não existe titulo cadastrado
+		when(livroRepositorio.existsByTitulo(criarLivroDTO.getTitulo())).thenReturn(false);
+				
+		// Executando 
+		Throwable exception = Assertions.assertThrows(RegraDeNegocioException.class, () -> livroService.inserir(criarLivroDTO));
+			
+		// Verificando
 		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
 		verify(livroRepositorio,never()).save(any());
 	}

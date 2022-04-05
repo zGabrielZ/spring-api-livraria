@@ -15,6 +15,7 @@ import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
 import com.gabrielferreira.br.modelo.dto.mostrar.LivroDTO;
 import com.gabrielferreira.br.repositorio.LivroRepositorio;
 import com.gabrielferreira.br.service.abstrato.AbstractService;
+import com.gabrielferreira.br.utils.ValidacaoFormatacao;
 
 @Service
 public class LivroService extends AbstractService<Livro>{
@@ -34,9 +35,10 @@ public class LivroService extends AbstractService<Livro>{
 	@Transactional
 	public Livro inserir(CriarLivroDTO criarLivroDTO) {
 		Usuario usuario = usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),USUARIO_MSG);
-		Livro livro = new Livro(criarLivroDTO.getId(), criarLivroDTO.getTitulo(), criarLivroDTO.getSubtitulo(), criarLivroDTO.getSinopse(), criarLivroDTO.getIsbn(), usuario);
+		Livro livro = new Livro(criarLivroDTO.getId(), ValidacaoFormatacao.getFormatacaoNome(criarLivroDTO.getTitulo()), criarLivroDTO.getSubtitulo(), criarLivroDTO.getSinopse(), criarLivroDTO.getIsbn(), usuario);
 		verificarTituloExistente(livro);
 		verificarIsbnExistente(livro);
+		ValidacaoFormatacao.getVerificarIsbn(livro.getIsbn());
 		return livroRepositorio.save(livro);
 	}
 	
