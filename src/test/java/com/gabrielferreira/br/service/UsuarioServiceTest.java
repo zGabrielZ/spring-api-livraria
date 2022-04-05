@@ -39,6 +39,7 @@ import com.gabrielferreira.br.modelo.dto.criar.CriarUsuarioDTO;
 import com.gabrielferreira.br.modelo.dto.mostrar.UsuarioDTO;
 import com.gabrielferreira.br.modelo.dto.procurar.ProcurarUsuarioDTO;
 import com.gabrielferreira.br.repositorio.UsuarioRepositorio;
+import com.gabrielferreira.br.utils.ValidacaoFormatacao;
 
 @ExtendWith(SpringExtension.class) // O Spring deve rodar um mini contexto de injeção de dependecia para rodar os testes
 @ActiveProfiles("test") // Rodar com o perfil de teste, rodar com o ambiente de teste
@@ -126,15 +127,15 @@ public class UsuarioServiceTest {
 		String nome9 = "      GABRIEL      FERREIRA        silva";
 		
 		// Executando o método do formato 
-		String nomeF1 = usuarioService.getFormatoNome(nome1);
-		String nomeF2 = usuarioService.getFormatoNome(nome2);
-		String nomeF3 = usuarioService.getFormatoNome(nome3);
-		String nomeF4 = usuarioService.getFormatoNome(nome4);
-		String nomeF5 = usuarioService.getFormatoNome(nome5);
-		String nomeF6 = usuarioService.getFormatoNome(nome6);
-		String nomeF7 = usuarioService.getFormatoNome(nome7);
-		String nomeF8 = usuarioService.getFormatoNome(nome8);
-		String nomeF9 = usuarioService.getFormatoNome(nome9);
+		String nomeF1 = ValidacaoFormatacao.getFormatacaoNome(nome1);
+		String nomeF2 = ValidacaoFormatacao.getFormatacaoNome(nome2);
+		String nomeF3 = ValidacaoFormatacao.getFormatacaoNome(nome3);
+		String nomeF4 = ValidacaoFormatacao.getFormatacaoNome(nome4);
+		String nomeF5 = ValidacaoFormatacao.getFormatacaoNome(nome5);
+		String nomeF6 = ValidacaoFormatacao.getFormatacaoNome(nome6);
+		String nomeF7 = ValidacaoFormatacao.getFormatacaoNome(nome7);
+		String nomeF8 = ValidacaoFormatacao.getFormatacaoNome(nome8);
+		String nomeF9 = ValidacaoFormatacao.getFormatacaoNome(nome9);
 		
 		// Verificando
 		assertThat(nomeF1).isEqualTo("Gabriel Ferreira");
