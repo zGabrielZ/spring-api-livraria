@@ -1,11 +1,11 @@
 package com.gabrielferreira.br.controller;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.beans.support.PagedListHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
 import com.gabrielferreira.br.modelo.dto.mostrar.LivroDTO;
+import com.gabrielferreira.br.modelo.dto.procurar.ProcurarLivroDTO;
 import com.gabrielferreira.br.service.LivroService;
 
 @RestController
@@ -61,13 +62,20 @@ public class LivroController {
 		return new ResponseEntity<>(criarLivroDTO,HttpStatus.NO_CONTENT);
 	}
 	
-	@GetMapping
-	public ResponseEntity<Page<LivroDTO>> buscarLivroPaginada(
+	@GetMapping("/filtro")
+	public ResponseEntity<PagedListHolder<LivroDTO>> buscarLivroPaginada(
 			@RequestParam(required = false) String titulo,
-			@RequestParam(value = "pagina",defaultValue = "0") int pagina,
-			@RequestParam(value = "totalRegistro", defaultValue = "3") int totalRegistro){
-		Pageable pageable = PageRequest.of(pagina, totalRegistro);
-		Page<LivroDTO> page = livroService.buscarLivrosPaginadas(titulo,pageable);
-		return new ResponseEntity<>(page,HttpStatus.OK);
+			@RequestParam(required = false) String isbn,
+			@RequestParam(required = false) String autor,
+			@RequestParam(defaultValue = "0", value = "pagina") int pagina,
+			@RequestParam(defaultValue = "5", value = "totalRegistro") int totalRegistro){
+		ProcurarLivroDTO procurarLivroDTO = new ProcurarLivroDTO(titulo, isbn, autor);
+		List<LivroDTO> livrosDtos = livroService.buscarLivrosPaginadas(procurarLivroDTO);
+		
+		PagedListHolder<LivroDTO> paginacao = new PagedListHolder<>(livrosDtos);
+		paginacao.setPage(pagina);
+		paginacao.setPageSize(totalRegistro);
+		
+		return new ResponseEntity<>(paginacao,HttpStatus.OK);
 	}
 }

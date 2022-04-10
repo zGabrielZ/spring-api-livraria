@@ -1,18 +1,30 @@
 package com.gabrielferreira.br.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+
+import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
 import com.gabrielferreira.br.modelo.dto.mostrar.LivroDTO;
+import com.gabrielferreira.br.modelo.dto.procurar.ProcurarLivroDTO;
 import com.gabrielferreira.br.repositorio.LivroRepositorio;
 import com.gabrielferreira.br.service.abstrato.AbstractService;
 import com.gabrielferreira.br.utils.ValidacaoFormatacao;
@@ -26,10 +38,13 @@ public class LivroService extends AbstractService<Livro>{
 	
 	private final UsuarioService usuarioService;
 	
-	public LivroService(JpaRepository<Livro, Long> jpaRepository, UsuarioService usuarioService) {
+	private final EntityManager entityManager;
+	
+	public LivroService(JpaRepository<Livro, Long> jpaRepository, UsuarioService usuarioService, EntityManager entityManager) {
 		super(jpaRepository);
 		livroRepositorio = (LivroRepositorio) jpaRepository;
 		this.usuarioService = usuarioService;
+		this.entityManager = entityManager;
 	}
 	
 	@Transactional
@@ -42,10 +57,44 @@ public class LivroService extends AbstractService<Livro>{
 		return livroRepositorio.save(livro);
 	}
 	
-	public Page<LivroDTO> buscarLivrosPaginadas(String titulo,Pageable pageable){
-		Page<Livro> pageLivro = livroRepositorio.buscarPorTituloPaginada(titulo, pageable);
-		Page<LivroDTO> pageLivroDto = pageLivro.map(l -> new LivroDTO(l));
-		return pageLivroDto;
+	public List<LivroDTO> buscarLivrosPaginadas(ProcurarLivroDTO procurarLivroDTO){
+		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		
+		CriteriaQuery<Livro> cq = cb.createQuery(Livro.class);
+		Root<Livro> root = cq.from(Livro.class);
+		
+		List<Predicate> predicates = new ArrayList<Predicate>();
+		
+		if(procurarLivroDTO.getTitulo() != null || StringUtils.isNotEmpty(procurarLivroDTO.getTitulo())) {
+			Predicate predicateTitulo = cb.like(root.get("titulo"), "%" + procurarLivroDTO.getTitulo() + "%");
+			predicates.add(predicateTitulo);
+		}
+		
+		if(procurarLivroDTO.getIsbn() != null || StringUtils.isNotEmpty(procurarLivroDTO.getIsbn())) {
+			Predicate predicateIsbn = cb.like(root.get("isbn"), "%" + procurarLivroDTO.getIsbn() + "%");
+			predicates.add(predicateIsbn);
+		}
+		
+		if(procurarLivroDTO.getUsuarioNome() != null || StringUtils.isNotEmpty(procurarLivroDTO.getUsuarioNome())) {
+			Join<Livro, Usuario> usuarioJoin = root.join("usuario");
+			usuarioJoin.alias("u");
+			
+			Predicate predicateNomeUsuario = cb.like(usuarioJoin.get("autor"), procurarLivroDTO.getUsuarioNome());
+			predicates.add(predicateNomeUsuario);
+		}
+		
+		cq.orderBy(cb.desc(root.get("titulo")));
+		cq.where((Predicate[])predicates.toArray(new Predicate[0]));
+		
+		TypedQuery<Livro> typedQuery = entityManager.createQuery(cq);
+		List<Livro> livros = typedQuery.getResultList();
+		
+		if(livros.isEmpty()) {
+			throw new EntidadeNotFoundException("Nenhum livro encontrado.");
+		}
+		
+		List<LivroDTO> livrosDtos = livros.stream().map(l -> new LivroDTO(l)).collect(Collectors.toList());
+		return livrosDtos;
 	}
 	
 	public void verificarTituloExistente(Livro livro) {

@@ -1,9 +1,6 @@
 package com.gabrielferreira.br.repositorio;
 
 import java.util.Optional;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,7 +21,4 @@ public interface LivroRepositorio extends JpaRepository<Livro, Long>{
 	
 	@Query("SELECT l FROM Livro l where l.titulo = :titulo and l.id <> :idLivro")
 	public Optional<Livro> existsByTituloQuandoForAtualizar(@Param("titulo") String titulo,@Param("idLivro") Long idLivro);
-	
-	@Query("SELECT l FROM Livro l where l.titulo like %:titulo%")
-	public Page<Livro> buscarPorTituloPaginada(@Param("titulo") String titulo, Pageable pageable);
 }

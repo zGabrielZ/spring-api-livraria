@@ -12,9 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -298,33 +295,6 @@ public class LivroRepositorioTest {
 		
 		// Verificação
 		assertThat(existeLivro).isFalse();
-	}
-	
-	@Test
-	@DisplayName("Deve retornar livros com a paginação e o título do livro.")
-	public void deveBuscarTituloLivros() {
-		// Cenário
-		usuario = Usuario.builder().id(null).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
-		
-		// Persistindo o usuário
-		entityManager.persist(usuario);
-		
-		Optional<Usuario> usuarioPesquisado = usuarioRepositorio.findById(usuario.getId());
-		livro = Livro.builder().id(null).usuario(usuarioPesquisado.get()).isbn("001").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
-		
-		// Persisinto os livros
-		entityManager.persist(livro);
-		
-		// Fazendo a consulta
-		Pageable pageable = PageRequest.of(0,1);
-		Page<Livro> page = livroRepositorio.buscarPorTituloPaginada("Teste", pageable);
-		
-		// Verificando 
-		assertThat(page.getContent()).hasSize(1); // Total de registros
-		assertThat(page.getTotalElements()).isEqualTo(1); // Total de conteúdo
-		assertThat(page.getNumber()).isEqualTo(0); // Número página
-		assertThat(page.getSize()).isEqualTo(1); // Tamanho
-		
 	}
 	
 }

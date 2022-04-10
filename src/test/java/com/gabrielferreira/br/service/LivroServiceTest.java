@@ -10,6 +10,15 @@ import static org.mockito.Mockito.when;
 
 import java.text.ParseException;
 import java.util.Optional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,10 +29,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -33,6 +38,7 @@ import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
 import com.gabrielferreira.br.modelo.dto.mostrar.LivroDTO;
+import com.gabrielferreira.br.modelo.dto.procurar.ProcurarLivroDTO;
 import com.gabrielferreira.br.repositorio.LivroRepositorio;
 
 @ExtendWith(SpringExtension.class) // O Spring deve rodar um mini contexto de injeção de dependecia para rodar os testes
@@ -47,11 +53,41 @@ public class LivroServiceTest {
 	
 	private LivroRepositorio livroRepositorio;
 	
+	private EntityManager entityManager;
+	
+	private CriteriaBuilder criteriaBuilder;
+	
+	private CriteriaQuery<Livro> criteriaQuery;
+	
+	private Root<Livro> root;
+	
+	private Join<Object, Object> usuarioJoin;
+	
+	private TypedQuery<Livro> typedQuery;
+	
+	private Predicate predicateTitulo;
+	private Predicate predicateIsbn;
+	private Predicate predicateAutor;
+	
 	@BeforeEach
 	public void criarInstancias() {
 		usuarioService = Mockito.mock(UsuarioService.class);
 		livroRepositorio = Mockito.mock(LivroRepositorio.class);
-		livroService = new LivroService(livroRepositorio, usuarioService);
+		entityManager = Mockito.mock(EntityManager.class);
+		livroService = new LivroService(livroRepositorio, usuarioService,entityManager);
+	}
+	
+	@BeforeEach
+	@SuppressWarnings("unchecked")
+	public void criarInstanciasConsulta() {
+		criteriaBuilder = Mockito.mock(CriteriaBuilder.class);
+		criteriaQuery = Mockito.mock(CriteriaQuery.class);
+		root = Mockito.mock(Root.class);
+		usuarioJoin = Mockito.mock(Join.class);
+		predicateTitulo = Mockito.mock(Predicate.class);
+		predicateIsbn = Mockito.mock(Predicate.class);
+		predicateAutor = Mockito.mock(Predicate.class);
+		typedQuery = Mockito.mock(TypedQuery.class);
 	}
 	
 	@Test
@@ -388,34 +424,67 @@ public class LivroServiceTest {
 	}
 	
 	@Test
-	@DisplayName("Deve buscar livros com parâmetros de paginação e o título do livro.")
-	public void deveBuscarLivroPaginado() {
+	@DisplayName("Deve mostrar lista de livros com todos os parametros informados.")
+	public void deveMostrarListaDeLivrosParametros() throws ParseException {
 		
-		// Cenário
-		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
-		List<Livro> livros = new ArrayList<>();
-
-		Livro livro = Livro.builder().id(50L).usuario(usuario).isbn("002").titulo("Teste Livro 1")
-				.subtitulo("Teste subtitulo 11").sinopse("Teste sinopse 4444").build();
-		Livro livro2 = Livro.builder().id(50L).usuario(usuario).isbn("003").titulo("Teste Livro 4")
-				.subtitulo("Teste subtitulo 22").sinopse("Teste sinopse 36543534").build();
+		// Cenário 
+		ProcurarLivroDTO procurarLivroDTO = ProcurarLivroDTO.builder().titulo("Teste").isbn("123321").usuarioNome("Gab")
+					.build();
 		
-		livros.add(livro);
-		livros.add(livro2);
+		List<Livro> livros = new ArrayList<Livro>();
+		livros.add(Livro.builder().id(1L).titulo("Teste 1").subtitulo("Teste sub 1").sinopse("Teste sin 1").isbn("123")
+				.usuario(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build()).build());
+		livros.add(Livro.builder().id(2L).titulo("Teste 2").subtitulo("Teste sub 2").sinopse("Teste sin 2").isbn("321")
+				.usuario(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build()).build());
+		livros.add(Livro.builder().id(3L).titulo("Teste 3").subtitulo("Teste sub 3").sinopse("Teste sin 3").isbn("123345")
+				.usuario(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build()).build());
+		livros.add(Livro.builder().id(4L).titulo("Teste 4").subtitulo("Teste sub 4").sinopse("Teste sin 4").isbn("9568054")
+				.usuario(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build()).build());
 		
-		// Fazendo o mock do método 
-		Pageable pageable = PageRequest.of(0,1);
-		when(livroRepositorio.buscarPorTituloPaginada("Teste",pageable)).thenReturn(new PageImpl<>(livros, pageable, 1));
+		condicaoConsultaTeste(procurarLivroDTO);
 		
-		// Executando 
-		Page<LivroDTO> page = livroService.buscarLivrosPaginadas("Teste",pageable);
+		when(criteriaBuilder.like(root.get("titulo"), "%" + procurarLivroDTO.getTitulo() + "%")).thenReturn(predicateTitulo);
+		when(criteriaBuilder.like(root.get("isbn"), "%" + procurarLivroDTO.getIsbn() + "%")).thenReturn(predicateIsbn);
+		when(criteriaBuilder.like(usuarioJoin.get("autor"), procurarLivroDTO.getUsuarioNome())).thenReturn(predicateAutor);
+		when(typedQuery.getResultList()).thenReturn(livros);
 		
+		// Executando
+		List<LivroDTO> livrosDtos = livroService.buscarLivrosPaginadas(procurarLivroDTO);
 		
-		// Verificando 
-		assertThat(page.getContent()).hasSize(2); // Total de registros
-		assertThat(page.getTotalElements()).isEqualTo(1); // Total de conteúdo
-		assertThat(page.getNumber()).isEqualTo(0); // Número página
-		assertThat(page.getSize()).isEqualTo(1); // Tamanho
+		// Verificando
+		assertThat(livrosDtos).hasSize(4);
 		
+	}
+	
+	@Test
+	@DisplayName("Não deve mostrar lista de livros com todos os parametros informados pois não encontrou nenhum registro.")
+	public void naoDeveMostrarListaDeLivrosParametros() throws ParseException {
+		
+		// Cenário 
+		ProcurarLivroDTO procurarLivroDTO = ProcurarLivroDTO.builder().titulo("Teste").isbn("123321").usuarioNome("Gab")
+					.build();
+		
+		condicaoConsultaTeste(procurarLivroDTO);
+		
+		when(criteriaBuilder.like(root.get("titulo"), "%" + procurarLivroDTO.getTitulo() + "%")).thenReturn(predicateTitulo);
+		when(criteriaBuilder.like(root.get("isbn"), "%" + procurarLivroDTO.getIsbn() + "%")).thenReturn(predicateIsbn);
+		when(criteriaBuilder.like(usuarioJoin.get("autor"), procurarLivroDTO.getUsuarioNome())).thenReturn(predicateAutor);
+		when(typedQuery.getResultList()).thenReturn(new ArrayList<>());
+		
+		// Executando
+		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class,
+							() -> livroService.buscarLivrosPaginadas(procurarLivroDTO));
+				
+		// Verificação
+		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
+		
+	}
+	
+	private void condicaoConsultaTeste(ProcurarLivroDTO procurarLivroDTO) {
+		when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+		when(criteriaBuilder.createQuery(Livro.class)).thenReturn(criteriaQuery);
+		when(criteriaQuery.from(Livro.class)).thenReturn(root);
+		when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
+		when(root.join("usuario")).thenReturn(usuarioJoin);
 	}
 }

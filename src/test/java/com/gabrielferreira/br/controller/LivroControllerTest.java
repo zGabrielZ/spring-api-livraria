@@ -20,9 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,6 +34,7 @@ import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
 import com.gabrielferreira.br.modelo.dto.mostrar.LivroDTO;
 import com.gabrielferreira.br.modelo.dto.mostrar.UsuarioDTO;
+import com.gabrielferreira.br.modelo.dto.procurar.ProcurarLivroDTO;
 import com.gabrielferreira.br.service.LivroService;
 
 @SpringBootTest
@@ -402,48 +400,66 @@ public class LivroControllerTest {
 		
 	}
 	
+	// terminar os testes unitarios, fazer a documentação, e continuar o video
+	
 	@Test
-	@DisplayName("Deve buscar livros com parâmetros de paginação e o título do livro.")
+	@DisplayName("Deve buscar livros com parâmetros de paginação.")
 	public void deveBuscarLivrosPaginacao() throws Exception{
 		// Cenário
-		UsuarioDTO usuario = UsuarioDTO.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
-		List<LivroDTO> livroDTOs = new ArrayList<>();
+		ProcurarLivroDTO procurarLivroDTO = ProcurarLivroDTO.builder().titulo("Teste").isbn("123321").usuarioNome("Gab")
+				.build();
+
+		List<LivroDTO> livros = new ArrayList<LivroDTO>();
+		livros.add(LivroDTO.builder().id(1L).titulo("Teste").subtitulo("Subtitulo").sinopse("Sinopse").isbn("123321")
+				.usuarioDto(UsuarioDTO.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build())
+				.build());
 		
-		LivroDTO livroDTO = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("002").titulo("Teste Livro 1")
-				.subtitulo("Teste subtitulo 11").sinopse("Teste sinopse 4444").build();
-		LivroDTO livroDTO2 = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("003").titulo("Teste Livro 4")
-				.subtitulo("Teste subtitulo 22").sinopse("Teste sinopse 36543534").build();
-		LivroDTO livroDTO3 = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("004").titulo("Teste Livro 5")
-				.subtitulo("Teste subtitulo 44").sinopse("Teste sinopse 34534543").build();
-		LivroDTO livroDTO4 = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("005").titulo("Teste Livro 6")
-				.subtitulo("Teste subtitulo 66").sinopse("Teste sinopse 4634534").build();
-		LivroDTO livroDTO5 = LivroDTO.builder().id(50L).usuarioDto(usuario).isbn("006").titulo("Teste Livro 8")
-				.subtitulo("Teste subtitulo 88").sinopse("Teste sinopse 11233").build();
-		
-		livroDTOs.add(livroDTO);
-		livroDTOs.add(livroDTO2);
-		livroDTOs.add(livroDTO3);
-		livroDTOs.add(livroDTO4);
-		livroDTOs.add(livroDTO5);
-		
-		// Executando o método 
-		Pageable pageable = PageRequest.of(0, 2);
-		when(livroService.buscarLivrosPaginadas("Teste",pageable)).thenReturn(new PageImpl<>(livroDTOs, pageable, 2));
-		
-		// Query da paginação -> /api/livros?pagina=0&totalRegistro=2
-		String queryPagincao = API_LIVROS + "?titulo=Teste&pagina=0&totalRegistro=2";
-		
+		// Executando o buscar do livros filtro com o mock de cima
+		when(livroService.buscarLivrosPaginadas(any(ProcurarLivroDTO.class)))
+				.thenReturn(livros);
+
 		// Criar uma requisição do tipo get
-		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(queryPagincao).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
-				
+		String queryPaginacao = API_LIVROS + "/filtro?titulo=" + procurarLivroDTO.getTitulo() + "&isbn="
+				+ procurarLivroDTO.getIsbn() + "&autor=" + procurarLivroDTO.getUsuarioNome()
+				+"&pagina="+0
+				+"&totalRegistro="+1;
+
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(queryPaginacao).accept(JSON_MEDIATYPE)
+				.contentType(JSON_MEDIATYPE);
+
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("source",Matchers.hasSize(1))) // Total de registros que foi buscado sem filtro
+			.andExpect(jsonPath("pageSize").value(1)) // Quantidade de registro com o filtro
+			.andExpect(jsonPath("pageList",Matchers.hasSize(1))) // Total de registro que foi buscado com filtro
+			.andExpect(jsonPath("page").value(0)); // Página que foi informado no parametro
+			
+	}
+	
+	@Test
+	@DisplayName("Não deve buscar livros com parâmetros de paginação pois não encontrou nenhum registro.")
+	public void naoDeveBuscarLivrosPaginacao() throws Exception{
+		// Cenário 
+		ProcurarLivroDTO procurarLivroDTO = ProcurarLivroDTO.builder().titulo("Teste").isbn("123321").usuarioNome("Gab")
+				.build();
+						
+		// Executando o buscar do livros filtro
+		when(livroService.buscarLivrosPaginadas(any(ProcurarLivroDTO.class)))
+			.thenThrow(new RegraDeNegocioException("Nenhum livro encontrado."));
+						
+		// Criar uma requisição do tipo get
+		String queryPaginacao = API_LIVROS + "/filtro?titulo="+procurarLivroDTO.getTitulo()+"&isbn="+procurarLivroDTO.getIsbn()
+				+"&autor="+procurarLivroDTO.getUsuarioNome();
+					
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(queryPaginacao).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
+						
 		// Fazendo o teste e verificando
 		mockMvc.perform(request)
 				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("content", Matchers.hasSize(5))) // Total de registros
-				.andExpect(jsonPath("totalElements").value(2)) // Total de conteúdo
-				.andExpect(jsonPath("pageable.pageSize").value(2)) // Tamanho
-				.andExpect(jsonPath("pageable.pageNumber").value(0)); // Número página
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("mensagem", equalTo("Nenhum livro encontrado.")));
 	}
 	
 }

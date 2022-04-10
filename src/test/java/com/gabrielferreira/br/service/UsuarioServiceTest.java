@@ -322,7 +322,6 @@ public class UsuarioServiceTest {
 		verify(usuarioRepositorio).findAll();
 	}
 	
-	// fazer os testes de service, paginacao do controller, e depois comentar o codigo,documentar swagger
 	@Test
 	@DisplayName("Deve mostrar lista de usuários com todos os parametros informados.")
 	public void deveMostrarListaDeUsuariosParametros() throws ParseException {
