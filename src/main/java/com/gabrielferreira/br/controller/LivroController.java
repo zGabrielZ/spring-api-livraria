@@ -23,8 +23,14 @@ import com.gabrielferreira.br.modelo.dto.mostrar.LivroDTO;
 import com.gabrielferreira.br.modelo.dto.procurar.ProcurarLivroDTO;
 import com.gabrielferreira.br.service.LivroService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
 @RestController
 @RequestMapping("/api/livros")
+@Api("Livro API")
 public class LivroController {
 
 	private static String LIVRO_MSG = "Livro";
@@ -33,6 +39,14 @@ public class LivroController {
 	private LivroService livroService;
 	
 	@PostMapping
+	@ApiOperation("Inserir um livro")
+	@ApiResponses(value = {
+			@ApiResponse(code = 201,message = "Inseriu o livro com sucesso"),
+			@ApiResponse(code = 400,message = "Ocorreu um erro personalizado"),
+			@ApiResponse(code = 401,message = "Não autorizado para inserir o livro"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o livro"),
+	})
 	public ResponseEntity<CriarLivroDTO> criarLivro(@RequestBody @Valid CriarLivroDTO livroDto){
 		Livro livro	= livroService.inserir(livroDto);
 		CriarLivroDTO criarLivroDTO = new CriarLivroDTO(livro);
@@ -40,6 +54,12 @@ public class LivroController {
 	}
 	
 	@GetMapping("/{idLivro}")
+	@ApiOperation("Obtém informação de um livro por ID")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401,message = "Não autorizado para consultar o livro"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o livro"),
+	})
 	public ResponseEntity<LivroDTO> obterInformacaoLivro(@PathVariable Long idLivro){
 		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
 		LivroDTO livroDTO = new LivroDTO(livro);
@@ -47,6 +67,14 @@ public class LivroController {
 	}
 	
 	@DeleteMapping("/{idLivro}")
+	@ApiOperation("Deletar um livro por ID")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200,message = "Retornou os valores com sucesso"),
+			@ApiResponse(code = 204,message = "Livro deletado com sucesso"),
+			@ApiResponse(code = 401,message = "Não autorizado para deletar o livro"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o livro"),
+	})
 	public ResponseEntity<Void> deletarLivro(@PathVariable Long idLivro){
 		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
 		livroService.deletar(livro.getId(),LIVRO_MSG);
@@ -54,6 +82,13 @@ public class LivroController {
 	}
 	
 	@PutMapping("/{idLivro}")
+	@ApiOperation("Atualizar um livro informando o ID")
+	@ApiResponses(value = {
+			@ApiResponse(code = 201,message = "Atualizou o livro com sucesso"),
+			@ApiResponse(code = 401,message = "Não autorizado para atualizar o livro"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o livro"),
+	})
 	public ResponseEntity<CriarLivroDTO> atualizarLivro(@PathVariable Long idLivro, @RequestBody @Valid CriarLivroDTO livroDto){
 		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
 		livroDto.setId(livro.getId());
@@ -63,6 +98,12 @@ public class LivroController {
 	}
 	
 	@GetMapping("/filtro")
+	@ApiOperation("Paginação da listagem de livros")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401,message = "Não autorizado para consultar os livros"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado o livro"),
+	})
 	public ResponseEntity<PagedListHolder<LivroDTO>> buscarLivroPaginada(
 			@RequestParam(required = false) String titulo,
 			@RequestParam(required = false) String isbn,
