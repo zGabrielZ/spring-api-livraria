@@ -30,6 +30,7 @@ public class LivroDTO implements Serializable{
 	private String subtitulo;
 	private String sinopse;
 	private String isbn;
+	private Integer estoque;
 	private UsuarioDTO usuarioDto;
 	
 	public LivroDTO(Livro livro) {
@@ -38,6 +39,7 @@ public class LivroDTO implements Serializable{
 		subtitulo = livro.getSubtitulo();
 		sinopse = livro.getSinopse();
 		isbn = livro.getIsbn();
+		estoque = livro.getEstoque();
 		usuarioDto = new UsuarioDTO(livro.getUsuario());
 	}
 

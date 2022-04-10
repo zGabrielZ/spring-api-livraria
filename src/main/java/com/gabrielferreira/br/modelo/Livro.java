@@ -43,6 +43,7 @@ public class Livro implements Serializable{
 	private String subtitulo;
 	private String sinopse;
 	private String isbn;
+	private Integer estoque;
 	
 	@JoinColumn(name = "USUARIO_ID",foreignKey = @ForeignKey(name="usuario_fk"))
 	@ManyToOne

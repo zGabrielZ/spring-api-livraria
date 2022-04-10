@@ -56,6 +56,10 @@ public class CriarLivroDTO implements Serializable{
 	@Size(min=5, max = 250, message="O campo sinopse deve ter no mínimo 5 até 250 caracteres")
 	private String sinopse;
 	
+	@ApiModelProperty(value = "Estoque do Livro",example = "100")
+	@NotNull(message = "Estoque do livro não pode ser vazio")
+	private Integer estoque;
+	
 	public CriarLivroDTO(Livro livro) {
 		id = livro.getId();
 		titulo = livro.getTitulo();
@@ -63,6 +67,7 @@ public class CriarLivroDTO implements Serializable{
 		isbn = livro.getIsbn();
 		subtitulo = livro.getSubtitulo();
 		sinopse = livro.getSinopse();
+		estoque = livro.getEstoque();
 	}
 
 }

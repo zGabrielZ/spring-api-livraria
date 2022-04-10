@@ -96,14 +96,16 @@ public class LivroServiceTest {
 		
 		// Cenário
 		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
-		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("123").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("123")
+				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).build();
 		
 		// Quando for buscar o usuario, vai retornar o usuario mockado 
 		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
 		
 		// Criar a entidade com o id já mockado
 		Livro livroCriado = Livro.builder().id(22L).usuario(usuario).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
-				.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).build();
+				.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse())
+				.estoque(criarLivroDTO.getEstoque()).build();
 		
 		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou seja não existe isbn repetido
 		when(livroRepositorio.buscarIsbnLivro(criarLivroDTO.getIsbn())).thenReturn(null);
@@ -126,7 +128,7 @@ public class LivroServiceTest {
 		assertThat(livroSaldo.getTitulo()).isEqualTo(criarLivroDTO.getTitulo());
 		assertThat(livroSaldo.getSubtitulo()).isEqualTo(criarLivroDTO.getSubtitulo());
 		assertThat(livroSaldo.getSinopse()).isEqualTo(criarLivroDTO.getSinopse());
-		
+		assertThat(livroSaldo.getEstoque()).isEqualTo(criarLivroDTO.getEstoque());
 	}
 	
 	@Test
@@ -137,11 +139,12 @@ public class LivroServiceTest {
 		// Criando o nosso livro para fazer o update 
 		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002").titulo("Teste Livro atualizar")
-				.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").build();
+				.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").estoque(100).build();
 		
 		// Criar a entidade que já foi feito o update
 		Livro livroAtualizado = Livro.builder().id(criarLivroDTO.getId()).usuario(usuarioAtualizar).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
-							.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).build();
+							.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).
+							estoque(criarLivroDTO.getEstoque()).build();
 		
 		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou seja não existe isbn repetido
 		when(livroRepositorio.buscarIsbnLivroQuandoForAtualizar(criarLivroDTO.getIsbn(),criarLivroDTO.getId())).thenReturn(null);
@@ -164,6 +167,7 @@ public class LivroServiceTest {
 		assertThat(livroParaAtualizar.getTitulo()).isEqualTo(criarLivroDTO.getTitulo());
 		assertThat(livroParaAtualizar.getSubtitulo()).isEqualTo(criarLivroDTO.getSubtitulo());
 		assertThat(livroParaAtualizar.getSinopse()).isEqualTo(criarLivroDTO.getSinopse());
+		assertThat(livroParaAtualizar.getEstoque()).isEqualTo(criarLivroDTO.getEstoque());
 		
 	}
 	
@@ -343,6 +347,32 @@ public class LivroServiceTest {
 			
 		// Verificando
 		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage(exception.getMessage());
+		verify(livroRepositorio,never()).save(any());
+	}
+	
+	@Test
+	@DisplayName("Não deve inserir o livro pois o Estoque não pode ser menor do que 0.")
+	public void naoDeveInserirLivroEstoque() {
+		// Cenário
+		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId())
+					.isbn("123321").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse")
+					.estoque(-10).build();
+				
+		// Quando for buscar o usuario, vai retornar o usuario mockado 
+		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
+				
+		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou seja não existe isbn repetido
+		when(livroRepositorio.buscarIsbnLivro(criarLivroDTO.getIsbn())).thenReturn(null);
+						
+		// Quando for verificar o titulo cadastrado, é pra retorna como false, ou seja não existe titulo cadastrado
+		when(livroRepositorio.existsByTitulo(criarLivroDTO.getTitulo())).thenReturn(false);
+				
+		// Executando 
+		Throwable exception = Assertions.assertThrows(RegraDeNegocioException.class, () -> livroService.inserir(criarLivroDTO));
+			
+		// Verificando
+		assertThat(exception).isInstanceOf(RegraDeNegocioException.class).hasMessage("Estoque do livro não pode ser menor do que 0.");
 		verify(livroRepositorio,never()).save(any());
 	}
 	

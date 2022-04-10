@@ -50,10 +50,12 @@ public class LivroService extends AbstractService<Livro>{
 	@Transactional
 	public Livro inserir(CriarLivroDTO criarLivroDTO) {
 		Usuario usuario = usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),USUARIO_MSG);
-		Livro livro = new Livro(criarLivroDTO.getId(), ValidacaoFormatacao.getFormatacaoNome(criarLivroDTO.getTitulo()), criarLivroDTO.getSubtitulo(), criarLivroDTO.getSinopse(), criarLivroDTO.getIsbn(), usuario);
+		Livro livro = new Livro(criarLivroDTO.getId(), ValidacaoFormatacao.getFormatacaoNome(criarLivroDTO.getTitulo()), 
+				criarLivroDTO.getSubtitulo(), criarLivroDTO.getSinopse(), criarLivroDTO.getIsbn(),criarLivroDTO.getEstoque(),usuario);
 		verificarTituloExistente(livro);
 		verificarIsbnExistente(livro);
 		ValidacaoFormatacao.getVerificarIsbn(livro.getIsbn());
+		verificarEstoqueLivro(livro);
 		return livroRepositorio.save(livro);
 	}
 	
@@ -130,6 +132,12 @@ public class LivroService extends AbstractService<Livro>{
 			if(livroExistenteAtualizar != null) {
 				throw new RegraDeNegocioException("ISBN já existente ao atualizar.");
 			}
+		}
+	}
+	
+	public void verificarEstoqueLivro(Livro livro) {
+		if(livro.getEstoque() < 0) {
+			throw new RegraDeNegocioException("Estoque do livro não pode ser menor do que 0.");
 		}
 	}
 }
