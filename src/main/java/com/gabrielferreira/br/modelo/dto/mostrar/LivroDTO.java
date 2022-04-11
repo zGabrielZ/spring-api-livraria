@@ -32,6 +32,7 @@ public class LivroDTO implements Serializable{
 	private String isbn;
 	private Integer estoque;
 	private UsuarioDTO usuarioDto;
+	private CategoriaDTO categoriaDTO;
 	
 	public LivroDTO(Livro livro) {
 		id = livro.getId();
@@ -41,6 +42,7 @@ public class LivroDTO implements Serializable{
 		isbn = livro.getIsbn();
 		estoque = livro.getEstoque();
 		usuarioDto = new UsuarioDTO(livro.getUsuario());
+		categoriaDTO = new CategoriaDTO(livro.getCategoria());
 	}
 
 }

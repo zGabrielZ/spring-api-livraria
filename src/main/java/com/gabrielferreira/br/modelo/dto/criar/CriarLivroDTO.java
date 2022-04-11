@@ -42,6 +42,10 @@ public class CriarLivroDTO implements Serializable{
 	@NotNull(message = "Usuário não pode ser vazio")
 	private Long idUsuario;
 	
+	@ApiModelProperty(value = "ID da Categoria",example = "1")
+	@NotNull(message = "Categoria não pode ser vazia")
+	private Long idCategoria;
+	
 	@ApiModelProperty(value = "ISBN do Livro",example = "123456")
 	@NotBlank(message = "ISBN não pode ser vazio")
 	private String isbn;
@@ -64,6 +68,7 @@ public class CriarLivroDTO implements Serializable{
 		id = livro.getId();
 		titulo = livro.getTitulo();
 		idUsuario = livro.getUsuario().getId();
+		idCategoria = livro.getCategoria().getId();
 		isbn = livro.getIsbn();
 		subtitulo = livro.getSubtitulo();
 		sinopse = livro.getSinopse();

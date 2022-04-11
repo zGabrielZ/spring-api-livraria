@@ -27,4 +27,6 @@ public class ProcurarLivroDTO implements Serializable{
 	private String isbn;
 	
 	private String usuarioNome;
+	
+	private String descricaoCategoria;
 }

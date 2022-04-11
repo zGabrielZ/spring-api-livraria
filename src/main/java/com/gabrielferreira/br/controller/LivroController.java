@@ -108,9 +108,10 @@ public class LivroController {
 			@RequestParam(required = false) String titulo,
 			@RequestParam(required = false) String isbn,
 			@RequestParam(required = false) String autor,
+			@RequestParam(required = false) String descricaoCategoria,
 			@RequestParam(defaultValue = "0", value = "pagina") int pagina,
 			@RequestParam(defaultValue = "5", value = "totalRegistro") int totalRegistro){
-		ProcurarLivroDTO procurarLivroDTO = new ProcurarLivroDTO(titulo, isbn, autor);
+		ProcurarLivroDTO procurarLivroDTO = new ProcurarLivroDTO(titulo, isbn, autor, descricaoCategoria);
 		List<LivroDTO> livrosDtos = livroService.buscarLivrosPaginadas(procurarLivroDTO);
 		
 		PagedListHolder<LivroDTO> paginacao = new PagedListHolder<>(livrosDtos);

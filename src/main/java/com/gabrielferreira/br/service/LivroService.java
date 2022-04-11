@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
+import com.gabrielferreira.br.modelo.Categoria;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
@@ -33,29 +34,37 @@ import com.gabrielferreira.br.utils.ValidacaoFormatacao;
 public class LivroService extends AbstractService<Livro>{
 	
 	private static String USUARIO_MSG = "Usuário";
+	private static String CATEGORIA_MSG = "Categoria";
 	
 	private final LivroRepositorio livroRepositorio;
 	
 	private final UsuarioService usuarioService;
 	
+	private final CategoriaService categoriaService;
+	
 	private final EntityManager entityManager;
 	
-	public LivroService(JpaRepository<Livro, Long> jpaRepository, UsuarioService usuarioService, EntityManager entityManager) {
+	public LivroService(JpaRepository<Livro, Long> jpaRepository, UsuarioService usuarioService,CategoriaService categoriaService,EntityManager entityManager) {
 		super(jpaRepository);
-		livroRepositorio = (LivroRepositorio) jpaRepository;
+		this.livroRepositorio = (LivroRepositorio) jpaRepository;
 		this.usuarioService = usuarioService;
+		this.categoriaService = categoriaService;
 		this.entityManager = entityManager;
 	}
 	
 	@Transactional
 	public Livro inserir(CriarLivroDTO criarLivroDTO) {
 		Usuario usuario = usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),USUARIO_MSG);
+		Categoria categoria = categoriaService.getDetalhe(criarLivroDTO.getIdCategoria(), CATEGORIA_MSG);
+		
 		Livro livro = new Livro(criarLivroDTO.getId(), ValidacaoFormatacao.getFormatacaoNome(criarLivroDTO.getTitulo()), 
-				criarLivroDTO.getSubtitulo(), criarLivroDTO.getSinopse(), criarLivroDTO.getIsbn(),criarLivroDTO.getEstoque(),usuario);
+				criarLivroDTO.getSubtitulo(), criarLivroDTO.getSinopse(), criarLivroDTO.getIsbn(),criarLivroDTO.getEstoque(),usuario,categoria);
+		
 		verificarTituloExistente(livro);
 		verificarIsbnExistente(livro);
 		ValidacaoFormatacao.getVerificarIsbn(livro.getIsbn());
 		verificarEstoqueLivro(livro);
+		
 		return livroRepositorio.save(livro);
 	}
 	
@@ -83,6 +92,14 @@ public class LivroService extends AbstractService<Livro>{
 			
 			Predicate predicateNomeUsuario = cb.like(usuarioJoin.get("autor"), procurarLivroDTO.getUsuarioNome());
 			predicates.add(predicateNomeUsuario);
+		}
+		
+		if(procurarLivroDTO.getDescricaoCategoria() != null || StringUtils.isNotEmpty(procurarLivroDTO.getDescricaoCategoria())) {
+			Join<Livro, Categoria> categoriaJoin = root.join("categoria");
+			categoriaJoin.alias("c");
+			
+			Predicate predicateDescricaoCategoria = cb.like(categoriaJoin.get("descricao"), procurarLivroDTO.getDescricaoCategoria());
+			predicates.add(predicateDescricaoCategoria);
 		}
 		
 		cq.orderBy(cb.desc(root.get("titulo")));
