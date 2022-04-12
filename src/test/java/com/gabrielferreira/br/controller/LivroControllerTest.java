@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
+import com.gabrielferreira.br.modelo.Categoria;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
@@ -54,10 +55,12 @@ public class LivroControllerTest {
 	private LivroService livroService;
 	
 	private Usuario usuarioCriado;
+	private Categoria categoriaCriado;
 	
 	@BeforeEach
 	public void criarInstancias() throws Exception{
 		usuarioCriado = Usuario.builder().id(1L).autor("José da Silva").dataNascimento(sdf.parse("26/12/1994")).build();
+		categoriaCriado = Categoria.builder().id(2L).descricao("Aventuras").build();
 	}
 	
 	@Test
@@ -66,11 +69,11 @@ public class LivroControllerTest {
 		
 		// Cénario
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId()).isbn("001")
-				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).build();
+				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).idCategoria(categoriaCriado.getId()).build();
 		
 		// Criar a entidade com o id já mockado
 		Livro livroCriado = Livro.builder().id(22L).usuario(usuarioCriado).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
-				.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).build();
+				.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).categoria(categoriaCriado).build();
 		
 		// Executando o inserir do livro
 		when(livroService.inserir(any())).thenReturn(livroCriado);
@@ -89,6 +92,7 @@ public class LivroControllerTest {
 			.andExpect(jsonPath("id").value(livroCriado.getId()))
 			.andExpect(jsonPath("titulo").value(livroCriado.getTitulo()))
 			.andExpect(jsonPath("idUsuario").value(livroCriado.getUsuario().getId()))
+			.andExpect(jsonPath("idCategoria").value(livroCriado.getCategoria().getId()))
 			.andExpect(jsonPath("isbn").value(livroCriado.getIsbn()))
 			.andExpect(jsonPath("subtitulo").value(livroCriado.getSubtitulo()))
 			.andExpect(jsonPath("sinopse").value(livroCriado.getSinopse()))
@@ -102,7 +106,7 @@ public class LivroControllerTest {
 		
 		// Cenário
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(null).isbn(null).titulo(null).subtitulo(null).sinopse(null)
-				.estoque(null).build();
+				.idCategoria(null).estoque(null).build();
 		
 		// Transformar o objeto em json
 		String json = new ObjectMapper().writeValueAsString(criarLivroDTO);
@@ -113,7 +117,7 @@ public class LivroControllerTest {
 		// Fazendo o teste e verificando
 		mockMvc.perform(request).andDo(print())
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("campos", Matchers.hasSize(6)));
+				.andExpect(jsonPath("campos", Matchers.hasSize(7)));
 	
 	}
 	
@@ -123,7 +127,7 @@ public class LivroControllerTest {
 		
 		// Cenário
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId()).isbn("001").titulo("Teste Livro")
-				.subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).build();
+				.subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).idCategoria(categoriaCriado.getId()).build();
 		
 		// Executando o inserir do livro
 		when(livroService.inserir(any())).thenThrow(new RegraDeNegocioException("Este ISBN já foi cadastrado por outro livro."));
@@ -147,7 +151,7 @@ public class LivroControllerTest {
 		
 		// Cenário
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId()).isbn("001")
-				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).build();
+				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").idCategoria(categoriaCriado.getId()).estoque(100).build();
 
 		// Executando o inserir do livro
 		when(livroService.inserir(any()))
@@ -173,7 +177,7 @@ public class LivroControllerTest {
 		
 		// Cenário
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId()).isbn("001")
-				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).build();
+				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").idCategoria(categoriaCriado.getId()).estoque(100).build();
 
 		// Executando o buscar do usuario
 		when(livroService.inserir(any()))
@@ -194,12 +198,38 @@ public class LivroControllerTest {
 	}
 	
 	@Test
+	@DisplayName("Não deve inserir o livro, pois não encontrou a categoria informada.")
+	public void naoDeveInserirLivroPoisNaoEncontrouCategoria() throws Exception {
+		
+		// Cenário
+		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId()).isbn("001")
+				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").idCategoria(categoriaCriado.getId()).estoque(100).build();
+
+		// Executando o buscar do usuario
+		when(livroService.inserir(any()))
+				.thenThrow(new EntidadeNotFoundException("Categoria não encontrado."));
+
+		// Transformar o objeto em json
+		String json = new ObjectMapper().writeValueAsString(criarLivroDTO);
+
+		// Criar uma requisição do tipo post
+		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(API_LIVROS).accept(JSON_MEDIATYPE)
+				.contentType(JSON_MEDIATYPE).content(json);
+
+		// Fazendo o teste e verificando
+		mockMvc.perform(request)
+				.andDo(print())
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("mensagem", equalTo("Categoria não encontrado.")));
+	}
+	
+	@Test
 	@DisplayName("Não deve inserir livro pois tem mais de 13 caracteres no campo ISBN.")
 	public void naoDeveInserirLivroCaracteresIsbn() throws Exception{
 		// Cénario
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId())
 				.isbn("0014309823480932840238048230").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").
-				estoque(100).build();
+				estoque(100).idCategoria(categoriaCriado.getId()).build();
 	
 		// Executando o verificar campo ISBN 
 		when(livroService.inserir(any())).thenThrow(new RegraDeNegocioException("O limite de caracteres do ISBN é até 13."));
@@ -224,7 +254,7 @@ public class LivroControllerTest {
 		// Cénario
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId())
 					.isbn("asasaasdfdgdhrtghdhdrthrth").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").
-					estoque(100).build();
+					estoque(100).idCategoria(categoriaCriado.getId()).build();
 			
 		// Executando o verificar campo ISBN 
 		when(livroService.inserir(any())).thenThrow(new RegraDeNegocioException("É necessário inserir somente numérico para o ISBN."));
@@ -249,7 +279,7 @@ public class LivroControllerTest {
 		
 		// Cenário
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuarioCriado.getId()).isbn("001").titulo("Teste Livro")
-				.subtitulo("Teste teste").sinopse("Teste sinopse").estoque(-100).build();
+				.subtitulo("Teste teste").sinopse("Teste sinopse").estoque(-100).idCategoria(categoriaCriado.getId()).build();
 		
 		// Executando o inserir do livro
 		when(livroService.inserir(any())).thenThrow(new RegraDeNegocioException("Estoque do livro não pode ser menor do que 0."));
@@ -271,8 +301,9 @@ public class LivroControllerTest {
 	public void deveBuscarLivro() throws Exception {
 		// Cenário 
 		Usuario usuario = Usuario.builder().id(133L).autor("Teste usuário").dataNascimento(new Date()).build();
+		Categoria categoria = Categoria.builder().id(2L).descricao("Teste categoria").build();
 		Livro livro = Livro.builder().id(12L).usuario(usuario).isbn("001").titulo("Teste Livro Gabriel").subtitulo("Teste teste Gabriel")
-				.sinopse("Teste sinopse gabriel").build();
+				.sinopse("Teste sinopse gabriel").categoria(categoria).build();
 		
 		// Executando o buscar do livro
 		when(livroService.getDetalhe(livro.getId(),LIVRO_MSG)).thenReturn(livro);
@@ -365,12 +396,13 @@ public class LivroControllerTest {
 		
 		// Criando o nosso livro para fazer o update 
 		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
+		Categoria categoriaAtualizar = Categoria.builder().id(30L).descricao("Descrição categoria teste").build();
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002").titulo("Teste Livro atualizar")
-				.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").estoque(200).build();
+				.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").estoque(200).idCategoria(categoriaAtualizar.getId()).build();
 		
 		// Criar a entidade que já foi feito o update
 		Livro livroAtualizado = Livro.builder().id(criarLivroDTO.getId()).usuario(usuarioAtualizar).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
-							.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).build();
+							.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).categoria(categoriaAtualizar).build();
 		
 		// Executando o buscar do livro
 		when(livroService.getDetalhe(livroJaSalvo.getId(),LIVRO_MSG)).thenReturn(livroJaSalvo);
@@ -392,6 +424,7 @@ public class LivroControllerTest {
 			.andExpect(jsonPath("id").value(livroAtualizado.getId()))
 			.andExpect(jsonPath("titulo").value(livroAtualizado.getTitulo()))
 			.andExpect(jsonPath("idUsuario").value(livroAtualizado.getUsuario().getId()))
+			.andExpect(jsonPath("idCategoria").value(livroAtualizado.getCategoria().getId()))
 			.andExpect(jsonPath("isbn").value(livroAtualizado.getIsbn()))
 			.andExpect(jsonPath("subtitulo").value(livroAtualizado.getSubtitulo()))
 			.andExpect(jsonPath("sinopse").value(livroAtualizado.getSinopse()));
@@ -406,8 +439,9 @@ public class LivroControllerTest {
 		
 		// Criando o nosso livro para fazer o update 
 		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
+		Categoria categoriaAtualizar = Categoria.builder().id(30L).descricao("Descrição categoria teste").build();
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002").titulo("Teste Livro atualizar")
-						.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").estoque(100).build();
+						.subtitulo("Teste subtitulo atualizar").sinopse("Teste sinopse atualizar").estoque(100).idCategoria(categoriaAtualizar.getId()).build();
 		
 		// Executando o buscar do livro
 		Long idNaoEncontrado = 50L;

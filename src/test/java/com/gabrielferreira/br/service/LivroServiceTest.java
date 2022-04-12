@@ -34,6 +34,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.gabrielferreira.br.exception.EntidadeNotFoundException;
 import com.gabrielferreira.br.exception.RegraDeNegocioException;
+import com.gabrielferreira.br.modelo.Categoria;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
 import com.gabrielferreira.br.modelo.dto.criar.CriarLivroDTO;
@@ -45,11 +46,13 @@ import com.gabrielferreira.br.repositorio.LivroRepositorio;
 @ActiveProfiles("test") // Rodar com o perfil de teste, rodar com o ambiente de teste
 public class LivroServiceTest {
 	
-	private static String [] MENSAGENS = {"Usuário","Livro"};
+	private static String [] MENSAGENS = {"Usuário","Livro","Categoria"};
 	
 	private LivroService livroService;
 	
 	private UsuarioService usuarioService;
+	
+	private CategoriaService categoriaService;
 	
 	private LivroRepositorio livroRepositorio;
 	
@@ -62,19 +65,22 @@ public class LivroServiceTest {
 	private Root<Livro> root;
 	
 	private Join<Object, Object> usuarioJoin;
+	private Join<Object, Object> categoriaJoin;
 	
 	private TypedQuery<Livro> typedQuery;
 	
 	private Predicate predicateTitulo;
 	private Predicate predicateIsbn;
 	private Predicate predicateAutor;
+	private Predicate predicateCategoria;
 	
 	@BeforeEach
 	public void criarInstancias() {
 		usuarioService = Mockito.mock(UsuarioService.class);
 		livroRepositorio = Mockito.mock(LivroRepositorio.class);
+		categoriaService = Mockito.mock(CategoriaService.class);
 		entityManager = Mockito.mock(EntityManager.class);
-		livroService = new LivroService(livroRepositorio, usuarioService,entityManager);
+		livroService = new LivroService(livroRepositorio, usuarioService,categoriaService,entityManager);
 	}
 	
 	@BeforeEach
@@ -84,9 +90,11 @@ public class LivroServiceTest {
 		criteriaQuery = Mockito.mock(CriteriaQuery.class);
 		root = Mockito.mock(Root.class);
 		usuarioJoin = Mockito.mock(Join.class);
+		categoriaJoin = Mockito.mock(Join.class);
 		predicateTitulo = Mockito.mock(Predicate.class);
 		predicateIsbn = Mockito.mock(Predicate.class);
 		predicateAutor = Mockito.mock(Predicate.class);
+		predicateCategoria = Mockito.mock(Predicate.class);
 		typedQuery = Mockito.mock(TypedQuery.class);
 	}
 	
@@ -96,11 +104,15 @@ public class LivroServiceTest {
 		
 		// Cenário
 		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		Categoria categoria = Categoria.builder().id(2L).descricao("Aventura").build();
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("123")
-				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).build();
+				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).idCategoria(categoria.getId()).build();
 		
 		// Quando for buscar o usuario, vai retornar o usuario mockado 
 		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
+		
+		// Quando for buscar a categoria, vai retornar a categoria mockado 
+		when(categoriaService.getDetalhe(criarLivroDTO.getIdCategoria(),MENSAGENS[2])).thenReturn(categoria);
 		
 		// Criar a entidade com o id já mockado
 		Livro livroCriado = Livro.builder().id(22L).usuario(usuario).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
@@ -458,24 +470,28 @@ public class LivroServiceTest {
 	public void deveMostrarListaDeLivrosParametros() throws ParseException {
 		
 		// Cenário 
-		ProcurarLivroDTO procurarLivroDTO = ProcurarLivroDTO.builder().titulo("Teste").isbn("123321").usuarioNome("Gab")
+		ProcurarLivroDTO procurarLivroDTO = ProcurarLivroDTO.builder().titulo("Teste").isbn("123321").usuarioNome("Gab").descricaoCategoria("Aventuras")
 					.build();
 		
 		List<Livro> livros = new ArrayList<Livro>();
+		Usuario usuario = Usuario.builder().autor("Gabriel 1").id(1L).dataNascimento(new Date()).build();
+		Categoria categoria = Categoria.builder().id(1L).descricao("Aventura").build();
+		
 		livros.add(Livro.builder().id(1L).titulo("Teste 1").subtitulo("Teste sub 1").sinopse("Teste sin 1").isbn("123")
-				.usuario(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build()).build());
+				.usuario(usuario).categoria(categoria).build());
 		livros.add(Livro.builder().id(2L).titulo("Teste 2").subtitulo("Teste sub 2").sinopse("Teste sin 2").isbn("321")
-				.usuario(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build()).build());
+				.usuario(usuario).categoria(categoria).build());
 		livros.add(Livro.builder().id(3L).titulo("Teste 3").subtitulo("Teste sub 3").sinopse("Teste sin 3").isbn("123345")
-				.usuario(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build()).build());
+				.usuario(usuario).categoria(categoria).build());
 		livros.add(Livro.builder().id(4L).titulo("Teste 4").subtitulo("Teste sub 4").sinopse("Teste sin 4").isbn("9568054")
-				.usuario(Usuario.builder().id(1L).autor("Gabriel 1").dataNascimento(new Date()).build()).build());
+				.usuario(usuario).categoria(categoria).build());
 		
 		condicaoConsultaTeste(procurarLivroDTO);
 		
 		when(criteriaBuilder.like(root.get("titulo"), "%" + procurarLivroDTO.getTitulo() + "%")).thenReturn(predicateTitulo);
 		when(criteriaBuilder.like(root.get("isbn"), "%" + procurarLivroDTO.getIsbn() + "%")).thenReturn(predicateIsbn);
 		when(criteriaBuilder.like(usuarioJoin.get("autor"), procurarLivroDTO.getUsuarioNome())).thenReturn(predicateAutor);
+		when(criteriaBuilder.like(categoriaJoin.get("descricao"), procurarLivroDTO.getDescricaoCategoria())).thenReturn(predicateCategoria);
 		when(typedQuery.getResultList()).thenReturn(livros);
 		
 		// Executando
@@ -516,5 +532,6 @@ public class LivroServiceTest {
 		when(criteriaQuery.from(Livro.class)).thenReturn(root);
 		when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
 		when(root.join("usuario")).thenReturn(usuarioJoin);
+		when(root.join("categoria")).thenReturn(categoriaJoin);
 	}
 }
