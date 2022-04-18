@@ -417,6 +417,29 @@ public class LivroServiceTest {
 	}
 	
 	@Test
+	@DisplayName("Deve encontrar livros por categoria id.")
+	public void deveEncontrarLivrosCategoria() {
+		// Cenário
+		List<Livro> livrosMock = new ArrayList<Livro>();
+		livrosMock.add(Livro.builder().id(22L).isbn("Teste isbn").titulo("Teste titulo")
+				.subtitulo("Teste subtitulo").sinopse("Teste sinopse").build());
+		livrosMock.add(Livro.builder().id(22L).isbn("Teste isbn").titulo("Teste titulo")
+				.subtitulo("Teste subtitulo").sinopse("Teste sinopse").build());
+		livrosMock.add(Livro.builder().id(22L).isbn("Teste isbn").titulo("Teste titulo")
+				.subtitulo("Teste subtitulo").sinopse("Teste sinopse").build());
+		
+		// Mock para retorna a lista de cima 
+		when(livroRepositorio.findLivrosByCategoriaId(anyLong())).thenReturn(livrosMock);
+		
+		// Executando o método 
+		List<Livro> livros = livroService.livrosPorCategoriaId(anyLong());
+		
+		// Verificando 
+		assertThat(!livros.isEmpty()).isTrue();
+		assertThat(livros.size()).isEqualTo(3);
+	}
+	
+	@Test
 	@DisplayName("Deve lançar uma exception, pois não encontrou o livro.")
 	public void naoDeveBuscarLivro() {
 		// Cenário 	

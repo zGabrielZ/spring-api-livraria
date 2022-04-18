@@ -1,6 +1,7 @@
 package com.gabrielferreira.br.modelo;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -40,7 +41,13 @@ public class Categoria implements Serializable{
 	private Long id;
 	private String descricao;
 	
+	@Builder.Default
 	@OneToMany(fetch = FetchType.LAZY,mappedBy = "categoria")
-	private List<Livro> livros;
+	private List<Livro> livros = new ArrayList<Livro>();
+	
+	public Categoria(Long id, String descricao) {
+		this.id = id;
+		this.descricao = descricao;
+	}
 
 }

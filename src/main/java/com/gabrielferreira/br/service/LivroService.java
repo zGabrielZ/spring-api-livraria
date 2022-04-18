@@ -116,6 +116,11 @@ public class LivroService extends AbstractService<Livro>{
 		return livrosDtos;
 	}
 	
+	public List<Livro> livrosPorCategoriaId(Long idCategoria){
+		List<Livro> livros = livroRepositorio.findLivrosByCategoriaId(idCategoria);
+		return livros;
+	}
+	
 	public void verificarTituloExistente(Livro livro) {
 		if(livro.getId() == null) {
 			

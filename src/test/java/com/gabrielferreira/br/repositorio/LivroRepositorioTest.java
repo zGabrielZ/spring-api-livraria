@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import com.gabrielferreira.br.modelo.Categoria;
 import com.gabrielferreira.br.modelo.Livro;
 import com.gabrielferreira.br.modelo.Usuario;
 
@@ -32,6 +34,9 @@ public class LivroRepositorioTest {
 	@Autowired
 	private LivroRepositorio livroRepositorio;
 	
+	@Autowired
+	private CategoriaRepositorio categoriaRepositorio;
+	
 	private Livro livro;
 	
 	private Usuario usuario;
@@ -39,6 +44,8 @@ public class LivroRepositorioTest {
 	private Usuario usuario2;
 	
 	private Livro livro2;
+	
+	private Categoria categoria;
 	
 	@Test
 	@DisplayName("Deve obter livro pelo id informado.")
@@ -295,6 +302,40 @@ public class LivroRepositorioTest {
 		
 		// Verificação
 		assertThat(existeLivro).isFalse();
+	}
+	
+	@Test
+	@DisplayName("Deve retornar uma quantidade de livros associados ao categoria.")
+	public void deveRetornarListaLivros() {
+		// Cenário
+		// Salvando categoria
+		categoria = Categoria.builder().id(null).descricao("Aventuras").build();
+		entityManager.persist(categoria);
+		
+		// Salvando autor
+		usuario = Usuario.builder().id(null).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
+		entityManager.persist(usuario);
+		
+		// Salvando livros
+		// Buscando o nosso usuario 
+		Usuario usuarioPesquisado = usuarioRepositorio.findById(usuario.getId()).get();
+		Categoria categoriaPesquisado = categoriaRepositorio.findById(categoria.getId()).get();
+		
+		livro = Livro.builder().id(null).usuario(usuarioPesquisado).isbn("001").titulo("Teste Livro")
+			.subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).categoria(categoriaPesquisado).build();
+		
+		livro2 = Livro.builder().id(null).usuario(usuarioPesquisado).isbn("002").titulo("Teste Livro 2")
+				.subtitulo("Teste teste 2").sinopse("Teste sinopse 2").estoque(100).categoria(categoriaPesquisado).build();
+		
+		entityManager.persist(livro);
+		entityManager.persist(livro2);
+	
+		// Executando o nosso método
+		List<Livro> livros = livroRepositorio.findLivrosByCategoriaId(categoriaPesquisado.getId());
+		
+		// Verificando
+		assertThat(!livros.isEmpty()).isTrue();
+	
 	}
 	
 }
