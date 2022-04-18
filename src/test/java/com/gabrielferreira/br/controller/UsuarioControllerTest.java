@@ -40,7 +40,6 @@ import com.gabrielferreira.br.service.UsuarioService;
 @AutoConfigureMockMvc // Configuração do teste para configurar os objetos
 public class UsuarioControllerTest {
 
-	private static String USUARIO_MSG = "Usuário";
 	private static String API_USUARIO = "/api/usuarios";
 	private static MediaType JSON_MEDIATYPE = MediaType.APPLICATION_JSON;
 	
@@ -96,7 +95,7 @@ public class UsuarioControllerTest {
 		Usuario usuarioAtualizado = Usuario.builder().id(criarUsuarioDTO.getId()).autor(criarUsuarioDTO.getAutor()).dataNascimento(criarUsuarioDTO.getDataNascimento()).build();
 		
 		// Executando o buscar do usuário
-		when(usuarioService.getDetalhe(usuarioJaSalvo.getId(),USUARIO_MSG)).thenReturn(usuarioJaSalvo);
+		when(usuarioService.getDetalhe(usuarioJaSalvo.getId())).thenReturn(usuarioJaSalvo);
 		
 		// Executando o atualizar do usuário
 		when(usuarioService.inserir(any())).thenReturn(usuarioAtualizado);
@@ -126,7 +125,7 @@ public class UsuarioControllerTest {
 		Usuario usuario = Usuario.builder().id(133L).autor("Teste usuário").dataNascimento(new Date()).build();
 		
 		// Executando o deletar do usuário
-		when(usuarioService.getDetalhe(usuario.getId(),USUARIO_MSG)).thenReturn(usuario);
+		when(usuarioService.getDetalhe(usuario.getId())).thenReturn(usuario);
 		
 		// Criar uma requisição do tipo delete
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_USUARIO + "/{idUsuario}",usuario.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -244,7 +243,7 @@ public class UsuarioControllerTest {
 		Usuario usuario = Usuario.builder().id(133L).autor("Teste usuário").dataNascimento(sdf.parse("12/12/1998")).build();
 		
 		// Executando o buscar do usuário
-		when(usuarioService.getDetalhe(usuario.getId(),USUARIO_MSG)).thenReturn(usuario);
+		when(usuarioService.getDetalhe(usuario.getId())).thenReturn(usuario);
 		
 		// Criar uma requisição do tipo get
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_USUARIO + "/{idUsuario}",usuario.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -266,7 +265,7 @@ public class UsuarioControllerTest {
 		Long idUsuario = 122L;
 
 		// Executando o buscar do usuário
-		when(usuarioService.getDetalhe(idUsuario,USUARIO_MSG)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
+		when(usuarioService.getDetalhe(idUsuario)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
 
 		// Criar uma requisição do tipo get
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_USUARIO + "/{idUsuario}",idUsuario).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -285,7 +284,7 @@ public class UsuarioControllerTest {
 		Long idUsuario = 150L;
 		
 		// Executando o deletar do usuário
-		when(usuarioService.getDetalhe(idUsuario,USUARIO_MSG)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
+		when(usuarioService.getDetalhe(idUsuario)).thenThrow(new EntidadeNotFoundException("Usuário não encontrado."));
 		
 		// Criar uma requisição do tipo delete
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_USUARIO + "/{idUsuario}",idUsuario).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);

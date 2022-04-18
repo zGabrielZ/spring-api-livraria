@@ -38,7 +38,6 @@ import com.gabrielferreira.br.service.LivroService;
 @AutoConfigureMockMvc // Configuração do teste para configurar os objetos
 public class CategoriaControllerTest {
 
-	private static String CATEGORIA_MSG = "Categoria";
 	private static String API_CATEGORIAS = "/api/categorias";
 	private static MediaType JSON_MEDIATYPE = MediaType.APPLICATION_JSON;
 	
@@ -112,7 +111,7 @@ public class CategoriaControllerTest {
 		Categoria categoriaAtualizado = Categoria.builder().id(criarCategoriaDTO.getId()).descricao(criarCategoriaDTO.getDescricao()).build();
 		
 		// Executando o buscar da categoria
-		when(categoriaService.getDetalhe(categoriaJaSalva.getId(),CATEGORIA_MSG)).thenReturn(categoriaJaSalva);
+		when(categoriaService.getDetalhe(categoriaJaSalva.getId())).thenReturn(categoriaJaSalva);
 		
 		// Executando o atualizar da categoria
 		when(categoriaService.inserirCategoria(any())).thenReturn(categoriaAtualizado);
@@ -141,7 +140,7 @@ public class CategoriaControllerTest {
 				.descricao("Aventuras").build();
 		
 		// Executando o buscar da categoria
-		when(categoriaService.getDetalhe(criarCategoriaDTO.getId(),CATEGORIA_MSG)).thenThrow(new EntidadeNotFoundException("Categoria não encontrado."));
+		when(categoriaService.getDetalhe(criarCategoriaDTO.getId())).thenThrow(new EntidadeNotFoundException("Categoria não encontrado."));
 		
 		// Transformar o objeto em json
 		String json = new ObjectMapper().writeValueAsString(criarCategoriaDTO);
@@ -164,7 +163,7 @@ public class CategoriaControllerTest {
 		Categoria categoria = Categoria.builder().id(2l).descricao("Terror").build();
 				
 		// Executando o detalhe da categoria
-		when(categoriaService.getDetalhe(categoria.getId(),CATEGORIA_MSG)).thenReturn(categoria);
+		when(categoriaService.getDetalhe(categoria.getId())).thenReturn(categoria);
 		
 		// Executando a lista vazia de livros associados ao categoria
 		when(livroService.livrosPorCategoriaId(anyLong())).thenReturn(new ArrayList<>());
@@ -186,7 +185,7 @@ public class CategoriaControllerTest {
 		Long idCategoria = 150L;
 				
 		// Executando o detalhe da categoria
-		when(categoriaService.getDetalhe(idCategoria,CATEGORIA_MSG)).thenThrow(new EntidadeNotFoundException("Categoria não encontrado."));
+		when(categoriaService.getDetalhe(idCategoria)).thenThrow(new EntidadeNotFoundException("Categoria não encontrado."));
 				
 		// Criar uma requisição do tipo delete
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_CATEGORIAS + "/{idCategoria}",idCategoria)
@@ -206,7 +205,7 @@ public class CategoriaControllerTest {
 		Categoria categoria = Categoria.builder().id(2l).descricao("Terror").build();
 						
 		// Executando o detalhe da categoria
-		when(categoriaService.getDetalhe(categoria.getId(),CATEGORIA_MSG)).thenReturn(categoria);
+		when(categoriaService.getDetalhe(categoria.getId())).thenReturn(categoria);
 				
 		// Executando a lista de livros associados ao categoria
 		List<Livro> livros = new ArrayList<Livro>();
@@ -233,7 +232,7 @@ public class CategoriaControllerTest {
 		Categoria categoria = Categoria.builder().id(2L).descricao("Teste categoria").build();
 	
 		// Executando o buscar da categoria
-		when(categoriaService.getDetalhe(categoria.getId(),CATEGORIA_MSG)).thenReturn(categoria);
+		when(categoriaService.getDetalhe(categoria.getId())).thenReturn(categoria);
 				
 		// Criar uma requisição do tipo get
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_CATEGORIAS + "/{idCategoria}",categoria.getId())
@@ -254,7 +253,7 @@ public class CategoriaControllerTest {
 		Long idCategoria = 122L;
 
 		// Executando o buscar da categoria
-		when(categoriaService.getDetalhe(idCategoria,CATEGORIA_MSG)).thenThrow(new EntidadeNotFoundException("Categoria não encontrado."));
+		when(categoriaService.getDetalhe(idCategoria)).thenThrow(new EntidadeNotFoundException("Categoria não encontrado."));
 
 		// Criar uma requisição do tipo get
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_CATEGORIAS + "/{idCategoria}",idCategoria)

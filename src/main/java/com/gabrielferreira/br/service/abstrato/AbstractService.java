@@ -16,17 +16,17 @@ public class AbstractService<T> {
 	private final JpaRepository<T, Long> jpaRepository;
 	
 	@Transactional
-	public void deletar(Long id, String mensagem) {
+	public void deletar(Long id) {
 		if (id == null) {
-			throw new IllegalArgumentException("Para deletar o " + mensagem + " é preciso informar o id.");
+			throw new IllegalArgumentException("Para deletar o registro é preciso informar o id.");
 		}
 		jpaRepository.deleteById(id);
 	}
 	
-	public T getDetalhe(Long id, String mensagem) {
+	public T getDetalhe(Long id) {
 		Optional<T> optionalEntidade = jpaRepository.findById(id);
 		if(!optionalEntidade.isPresent()) {
-			throw new EntidadeNotFoundException(mensagem+" não encontrado.");
+			throw new EntidadeNotFoundException("Registro não encontrado.");
 		}
 		return optionalEntidade.get();
 	}

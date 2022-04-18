@@ -33,8 +33,6 @@ import io.swagger.annotations.ApiResponses;
 @Api("Livro API")
 public class LivroController {
 
-	private static String LIVRO_MSG = "Livro";
-	
 	@Autowired
 	private LivroService livroService;
 	
@@ -61,7 +59,7 @@ public class LivroController {
 			@ApiResponse(code = 404,message = "Não foi encontrado o livro"),
 	})
 	public ResponseEntity<LivroDTO> obterInformacaoLivro(@PathVariable Long idLivro){
-		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
+		Livro livro = livroService.getDetalhe(idLivro);
 		LivroDTO livroDTO = new LivroDTO(livro);
 		return new ResponseEntity<>(livroDTO,HttpStatus.OK);
 	}
@@ -76,8 +74,8 @@ public class LivroController {
 			@ApiResponse(code = 404,message = "Não foi encontrado o livro"),
 	})
 	public ResponseEntity<Void> deletarLivro(@PathVariable Long idLivro){
-		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
-		livroService.deletar(livro.getId(),LIVRO_MSG);
+		Livro livro = livroService.getDetalhe(idLivro);
+		livroService.deletar(livro.getId());
 		return ResponseEntity.noContent().build();
 	}
 	
@@ -90,7 +88,7 @@ public class LivroController {
 			@ApiResponse(code = 404,message = "Não foi encontrado o livro"),
 	})
 	public ResponseEntity<CriarLivroDTO> atualizarLivro(@PathVariable Long idLivro, @RequestBody @Valid CriarLivroDTO livroDto){
-		Livro livro = livroService.getDetalhe(idLivro,LIVRO_MSG);
+		Livro livro = livroService.getDetalhe(idLivro);
 		livroDto.setId(livro.getId());
 		livro = livroService.inserir(livroDto);
 		CriarLivroDTO criarLivroDTO = new CriarLivroDTO(livro);

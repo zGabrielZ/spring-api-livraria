@@ -45,8 +45,6 @@ import com.gabrielferreira.br.utils.ValidacaoFormatacao;
 @ActiveProfiles("test") // Rodar com o perfil de teste, rodar com o ambiente de teste
 public class UsuarioServiceTest {
 	
-	private static String USUARIO_MSG = "Usuário";
-	
 	private UsuarioService usuarioService;
 	
 	private UsuarioRepositorio usuarioRepositorio;
@@ -187,7 +185,7 @@ public class UsuarioServiceTest {
 		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
 		
 		// Executando método 
-		usuarioService.deletar(usuario.getId(),anyString());
+		usuarioService.deletar(usuario.getId());
 		
 		// Verificação
 		verify(usuarioRepositorio).deleteById(usuario.getId());
@@ -244,7 +242,7 @@ public class UsuarioServiceTest {
 		doReturn(Optional.of(usuario)).when(usuarioRepositorio).findById(anyLong());
 		
 		// Executando o método de buscar
-		Usuario usuarioExistente = usuarioService.getDetalhe(usuario.getId(),USUARIO_MSG);
+		Usuario usuarioExistente = usuarioService.getDetalhe(usuario.getId());
 		
 		// Verificando se foi invocado o find by
 		verify(usuarioRepositorio).findById(anyLong());
@@ -263,7 +261,7 @@ public class UsuarioServiceTest {
 		when(usuarioRepositorio.findById(anyLong())).thenReturn(Optional.empty());
 		
 		// Executando 
-		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class, () -> usuarioService.getDetalhe(anyLong(),USUARIO_MSG));
+		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class, () -> usuarioService.getDetalhe(anyLong()));
 		
 		// Verificação
 		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
@@ -278,7 +276,7 @@ public class UsuarioServiceTest {
 		Usuario usuario = new Usuario();
 		
 		// Executando 
-		Assertions.assertThrows(IllegalArgumentException.class, () -> usuarioService.deletar(usuario.getId(),USUARIO_MSG));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> usuarioService.deletar(usuario.getId()));
 		
 		// Verificando
 		verify(usuarioRepositorio,never()).delete(usuario);

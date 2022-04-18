@@ -36,8 +36,6 @@ import io.swagger.annotations.ApiResponses;
 @Api("Categoria API")
 public class CategoriaController {
 
-	private static String CATEGORIA_MSG = "Categoria";
-	
 	@Autowired
 	private CategoriaService categoriaService;
 	
@@ -68,7 +66,7 @@ public class CategoriaController {
 			@ApiResponse(code = 404,message = "Não foi encontrado a categoria"),
 	})
 	public ResponseEntity<CriarCategoriaDTO> atualizarLivro(@PathVariable Long idCategoria, @RequestBody @Valid CriarCategoriaDTO categoriaDto){
-		Categoria categoria = categoriaService.getDetalhe(idCategoria,CATEGORIA_MSG);
+		Categoria categoria = categoriaService.getDetalhe(idCategoria);
 		categoriaDto.setId(categoria.getId());
 		categoria = categoriaService.inserirCategoria(categoriaDto);
 		CriarCategoriaDTO criarCategoriaDto = new CriarCategoriaDTO(categoria);
@@ -85,14 +83,14 @@ public class CategoriaController {
 			@ApiResponse(code = 404,message = "Não foi encontrado a categoria"),
 	})
 	public ResponseEntity<Void> deletarCategoria(@PathVariable Long idCategoria){
-		Categoria categoria = categoriaService.getDetalhe(idCategoria, CATEGORIA_MSG);
+		Categoria categoria = categoriaService.getDetalhe(idCategoria);
 		
 		List<Livro> livros = livroService.livrosPorCategoriaId(categoria.getId());
 		if(!livros.isEmpty()) {
 			throw new RegraDeNegocioException("Não é possível deletar categoria pois tem livros associados !");
 		}
 		
-		categoriaService.deletar(categoria.getId(), CATEGORIA_MSG);
+		categoriaService.deletar(categoria.getId());
 		return ResponseEntity.noContent().build();
 	}
 	
@@ -104,7 +102,7 @@ public class CategoriaController {
 			@ApiResponse(code = 404,message = "Não foi encontrado a categoria"),
 	})
 	public ResponseEntity<CategoriaDTO> obterInformacaoCategoria(@PathVariable Long idCategoria){
-		Categoria categoria = categoriaService.getDetalhe(idCategoria, CATEGORIA_MSG);
+		Categoria categoria = categoriaService.getDetalhe(idCategoria);
 		CategoriaDTO categoriaDTO = new CategoriaDTO(categoria);
 		return new ResponseEntity<>(categoriaDTO,HttpStatus.OK);
 	}

@@ -35,8 +35,6 @@ import io.swagger.annotations.ApiResponses;
 @Api("Usuário API")
 public class UsuarioController {
 
-	private static String USUARIO_MSG = "Usuário";
-	
 	@Autowired
 	private UsuarioService usuarioService;
 	
@@ -65,7 +63,7 @@ public class UsuarioController {
 			@ApiResponse(code = 404,message = "Não foi encontrado o usuário"),
 	})
 	public ResponseEntity<UsuarioDTO> obterInformacaoUsuario(@PathVariable Long idUsuario){
-		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
+		Usuario usuario = usuarioService.getDetalhe(idUsuario);
 		UsuarioDTO usuarioDto = new UsuarioDTO(usuario);
 		return new ResponseEntity<>(usuarioDto,HttpStatus.OK);
 	}
@@ -114,7 +112,7 @@ public class UsuarioController {
 			@ApiResponse(code = 404,message = "Não foi encontrado o usuário"),
 	})
 	public ResponseEntity<CriarUsuarioDTO> atualizarUsuario(@PathVariable Long idUsuario, @RequestBody CriarUsuarioDTO usuarioDto){
-		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
+		Usuario usuario = usuarioService.getDetalhe(idUsuario);
 		
 		List<String> verificaCampos = CriarUsuarioValidacao.getVerificacaoErrosCriarUsuario(usuarioDto);
 		verificarCamposUsuario(verificaCampos);
@@ -137,8 +135,8 @@ public class UsuarioController {
 			@ApiResponse(code = 404,message = "Não foi encontrado o usuário"),
 	})
 	public ResponseEntity<Void> deletarUsuario(@PathVariable Long idUsuario){
-		Usuario usuario = usuarioService.getDetalhe(idUsuario,USUARIO_MSG);
-		usuarioService.deletar(usuario.getId(),USUARIO_MSG);
+		Usuario usuario = usuarioService.getDetalhe(idUsuario);
+		usuarioService.deletar(usuario.getId());
 		return ResponseEntity.noContent().build();
 	}
 	

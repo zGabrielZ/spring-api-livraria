@@ -46,8 +46,6 @@ import com.gabrielferreira.br.repositorio.LivroRepositorio;
 @ActiveProfiles("test") // Rodar com o perfil de teste, rodar com o ambiente de teste
 public class LivroServiceTest {
 	
-	private static String [] MENSAGENS = {"Usuário","Livro","Categoria"};
-	
 	private LivroService livroService;
 	
 	private UsuarioService usuarioService;
@@ -109,10 +107,10 @@ public class LivroServiceTest {
 				.titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").estoque(100).idCategoria(categoria.getId()).build();
 		
 		// Quando for buscar o usuario, vai retornar o usuario mockado 
-		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
+		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario())).thenReturn(usuario);
 		
 		// Quando for buscar a categoria, vai retornar a categoria mockado 
-		when(categoriaService.getDetalhe(criarLivroDTO.getIdCategoria(),MENSAGENS[2])).thenReturn(categoria);
+		when(categoriaService.getDetalhe(criarLivroDTO.getIdCategoria())).thenReturn(categoria);
 		
 		// Criar a entidade com o id já mockado
 		Livro livroCriado = Livro.builder().id(22L).usuario(usuario).isbn(criarLivroDTO.getIsbn()).titulo(criarLivroDTO.getTitulo())
@@ -225,7 +223,7 @@ public class LivroServiceTest {
 		Usuario usuarioAtualizar = Usuario.builder().id(30L).autor("Teste autor").dataNascimento(new Date()).build();
 		
 		// Quando buscar o id do usuário, tem que retornar o usuário já cadastrado
-		when(usuarioService.getDetalhe(anyLong(), any())).thenReturn(usuarioAtualizar);
+		when(usuarioService.getDetalhe(anyLong())).thenReturn(usuarioAtualizar);
 		
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(50L).idUsuario(usuarioAtualizar.getId()).isbn("002")
 				.titulo("Teste Livro Atualizar").subtitulo("Teste subtitulo atualizar")
@@ -263,7 +261,7 @@ public class LivroServiceTest {
 		// Usuário já está salvo no banco do mockado
 		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
 		// Quando for buscar o usuario, é pra retorna o de cima
-		when(usuarioService.getDetalhe(usuario.getId(),MENSAGENS[0])).thenReturn(usuario);
+		when(usuarioService.getDetalhe(usuario.getId())).thenReturn(usuario);
 		
 		// Fazendo o nosso criar livro
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("001").titulo("Teste Livro Gabriel").subtitulo("Teste teste Gabriel")
@@ -292,7 +290,7 @@ public class LivroServiceTest {
 		// Usuário já está salvo no banco do mockado
 		Usuario usuario = Usuario.builder().id(1L).autor("Gabriel Ferreira").dataNascimento(new Date()).build();
 		// Quando for buscar o usuario, é pra retorna o de cima
-		when(usuarioService.getDetalhe(usuario.getId(),MENSAGENS[0])).thenReturn(usuario);
+		when(usuarioService.getDetalhe(usuario.getId())).thenReturn(usuario);
 		
 		// Fazendo o nosso criar livro
 		CriarLivroDTO criarLivroDTO = CriarLivroDTO.builder().id(null).idUsuario(usuario.getId()).isbn("001").titulo("Teste Livro Gabriel").subtitulo("Teste teste Gabriel")
@@ -321,7 +319,7 @@ public class LivroServiceTest {
 				.isbn("1233333333333333333333333333333333").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
 		
 		// Quando for buscar o usuario, vai retornar o usuario mockado 
-		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
+		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario())).thenReturn(usuario);
 		
 		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou seja não existe isbn repetido
 		when(livroRepositorio.buscarIsbnLivro(criarLivroDTO.getIsbn())).thenReturn(null);
@@ -346,7 +344,7 @@ public class LivroServiceTest {
 					.isbn("uifghiauerhfiueshriuferu").titulo("Teste Livro").subtitulo("Teste teste").sinopse("Teste sinopse").build();
 				
 		// Quando for buscar o usuario, vai retornar o usuario mockado 
-		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
+		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario())).thenReturn(usuario);
 				
 		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou seja não existe isbn repetido
 		when(livroRepositorio.buscarIsbnLivro(criarLivroDTO.getIsbn())).thenReturn(null);
@@ -372,7 +370,7 @@ public class LivroServiceTest {
 					.estoque(-10).build();
 				
 		// Quando for buscar o usuario, vai retornar o usuario mockado 
-		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),MENSAGENS[0])).thenReturn(usuario);
+		when(usuarioService.getDetalhe(criarLivroDTO.getIdUsuario())).thenReturn(usuario);
 				
 		// Quando for verificar o método de isbn ja cadastrado, deve retornar null, ou seja não existe isbn repetido
 		when(livroRepositorio.buscarIsbnLivro(criarLivroDTO.getIsbn())).thenReturn(null);
@@ -402,7 +400,7 @@ public class LivroServiceTest {
 		doReturn(Optional.of(livro)).when(livroRepositorio).findById(livro.getId());
 		
 		// Executando o método de buscar
-		Livro livroExistente = livroService.getDetalhe(livro.getId(),MENSAGENS[1]);
+		Livro livroExistente = livroService.getDetalhe(livro.getId());
 		
 		// Verificando se foi invocado o find by
 		verify(livroRepositorio).findById(anyLong());
@@ -446,7 +444,7 @@ public class LivroServiceTest {
 		when(livroRepositorio.findById(anyLong())).thenReturn(Optional.empty());
 		
 		// Executando 
-		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class, () -> livroService.getDetalhe(anyLong(),MENSAGENS[1]));
+		Throwable exception = Assertions.assertThrows(EntidadeNotFoundException.class, () -> livroService.getDetalhe(anyLong()));
 		
 		// Verificação
 		assertThat(exception).isInstanceOf(EntidadeNotFoundException.class).hasMessage(exception.getMessage());
@@ -467,7 +465,7 @@ public class LivroServiceTest {
 		doReturn(Optional.of(livro)).when(livroRepositorio).findById(livro.getId());
 		
 		// Executand o método 
-		livroService.deletar(livro.getId(),MENSAGENS[1]);
+		livroService.deletar(livro.getId());
 		
 		// Verificação
 		verify(livroRepositorio).deleteById(livro.getId());
@@ -482,7 +480,7 @@ public class LivroServiceTest {
 		Livro livro = new Livro();
 		
 		// Executando 
-		Assertions.assertThrows(IllegalArgumentException.class, () -> livroService.deletar(livro.getId(),MENSAGENS[1]));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> livroService.deletar(livro.getId()));
 		
 		// Verificando
 		verify(livroRepositorio,never()).delete(livro);

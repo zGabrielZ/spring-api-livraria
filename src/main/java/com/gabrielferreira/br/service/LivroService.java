@@ -33,9 +33,6 @@ import com.gabrielferreira.br.utils.ValidacaoFormatacao;
 @Service
 public class LivroService extends AbstractService<Livro>{
 	
-	private static String USUARIO_MSG = "Usuário";
-	private static String CATEGORIA_MSG = "Categoria";
-	
 	private final LivroRepositorio livroRepositorio;
 	
 	private final UsuarioService usuarioService;
@@ -54,8 +51,8 @@ public class LivroService extends AbstractService<Livro>{
 	
 	@Transactional
 	public Livro inserir(CriarLivroDTO criarLivroDTO) {
-		Usuario usuario = usuarioService.getDetalhe(criarLivroDTO.getIdUsuario(),USUARIO_MSG);
-		Categoria categoria = categoriaService.getDetalhe(criarLivroDTO.getIdCategoria(), CATEGORIA_MSG);
+		Usuario usuario = usuarioService.getDetalhe(criarLivroDTO.getIdUsuario());
+		Categoria categoria = categoriaService.getDetalhe(criarLivroDTO.getIdCategoria());
 		
 		Livro livro = new Livro(criarLivroDTO.getId(), ValidacaoFormatacao.getFormatacaoNome(criarLivroDTO.getTitulo()), 
 				criarLivroDTO.getSubtitulo(), criarLivroDTO.getSinopse(), criarLivroDTO.getIsbn(),criarLivroDTO.getEstoque(),usuario,categoria);

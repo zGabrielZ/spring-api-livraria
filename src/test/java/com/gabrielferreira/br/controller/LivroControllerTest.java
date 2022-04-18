@@ -43,7 +43,6 @@ import com.gabrielferreira.br.service.LivroService;
 @AutoConfigureMockMvc // Configuração do teste para configurar os objetos
 public class LivroControllerTest {
 
-	private static String LIVRO_MSG = "Livro";
 	private static String API_LIVROS = "/api/livros";
 	private static MediaType JSON_MEDIATYPE = MediaType.APPLICATION_JSON;
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -306,7 +305,7 @@ public class LivroControllerTest {
 				.sinopse("Teste sinopse gabriel").categoria(categoria).build();
 		
 		// Executando o buscar do livro
-		when(livroService.getDetalhe(livro.getId(),LIVRO_MSG)).thenReturn(livro);
+		when(livroService.getDetalhe(livro.getId())).thenReturn(livro);
 		
 		// Criar uma requisição do tipo get
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_LIVROS + "/{idLivro}",livro.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -331,7 +330,7 @@ public class LivroControllerTest {
 		Long idLivro = 122L;
 
 		// Executando o buscar do livro
-		when(livroService.getDetalhe(idLivro,LIVRO_MSG)).thenThrow(new EntidadeNotFoundException("Livro não encontrado."));
+		when(livroService.getDetalhe(idLivro)).thenThrow(new EntidadeNotFoundException("Livro não encontrado."));
 
 		// Criar uma requisição do tipo get
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(API_LIVROS + "/{idLivro}",idLivro).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -352,7 +351,7 @@ public class LivroControllerTest {
 				.sinopse("Teste sinopse gabriel").build();
 		
 		// Executando o deletar do livro
-		when(livroService.getDetalhe(livro.getId(),LIVRO_MSG)).thenReturn(livro);
+		when(livroService.getDetalhe(livro.getId())).thenReturn(livro);
 		
 		// Criar uma requisição do tipo delete
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_LIVROS + "/{idLivro}",livro.getId()).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -371,7 +370,7 @@ public class LivroControllerTest {
 		Long idLivro = 150L;
 		
 		// Executando o deletar do livro
-		when(livroService.getDetalhe(idLivro,LIVRO_MSG)).thenThrow(new EntidadeNotFoundException("Livro não encontrado."));
+		when(livroService.getDetalhe(idLivro)).thenThrow(new EntidadeNotFoundException("Livro não encontrado."));
 		
 		// Criar uma requisição do tipo delete
 		MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(API_LIVROS + "/{idLivro}",idLivro).accept(JSON_MEDIATYPE).contentType(JSON_MEDIATYPE);
@@ -405,7 +404,7 @@ public class LivroControllerTest {
 							.subtitulo(criarLivroDTO.getSubtitulo()).sinopse(criarLivroDTO.getSinopse()).categoria(categoriaAtualizar).build();
 		
 		// Executando o buscar do livro
-		when(livroService.getDetalhe(livroJaSalvo.getId(),LIVRO_MSG)).thenReturn(livroJaSalvo);
+		when(livroService.getDetalhe(livroJaSalvo.getId())).thenReturn(livroJaSalvo);
 		
 		// Executando o atualizar do livro
 		when(livroService.inserir(any())).thenReturn(livroAtualizado);
@@ -445,7 +444,7 @@ public class LivroControllerTest {
 		
 		// Executando o buscar do livro
 		Long idNaoEncontrado = 50L;
-		when(livroService.getDetalhe(idNaoEncontrado,LIVRO_MSG)).thenThrow(new EntidadeNotFoundException("Livro não encontrado."));
+		when(livroService.getDetalhe(idNaoEncontrado)).thenThrow(new EntidadeNotFoundException("Livro não encontrado."));
 
 		
 		// Transformar o objeto em json
