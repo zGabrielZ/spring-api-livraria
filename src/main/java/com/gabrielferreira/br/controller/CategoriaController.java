@@ -26,8 +26,14 @@ import com.gabrielferreira.br.modelo.dto.mostrar.CategoriaDTO;
 import com.gabrielferreira.br.service.CategoriaService;
 import com.gabrielferreira.br.service.LivroService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
 @RestController
 @RequestMapping("/api/categorias")
+@Api("Categoria API")
 public class CategoriaController {
 
 	private static String CATEGORIA_MSG = "Categoria";
@@ -39,6 +45,14 @@ public class CategoriaController {
 	private LivroService livroService;
 	
 	@PostMapping
+	@ApiOperation("Inserir uma categoria")
+	@ApiResponses(value = {
+			@ApiResponse(code = 201,message = "Inseriu a categoria com sucesso"),
+			@ApiResponse(code = 400,message = "Ocorreu um erro personalizado"),
+			@ApiResponse(code = 401,message = "Não autorizado para inserir a categoria"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado a categoria"),
+	})
 	public ResponseEntity<CriarCategoriaDTO> criarCategoria(@Valid @RequestBody CriarCategoriaDTO criarCategoriaDTO){
 		Categoria categoria = categoriaService.inserirCategoria(criarCategoriaDTO);
 		CriarCategoriaDTO categoriaDTO = new CriarCategoriaDTO(categoria);
@@ -46,6 +60,13 @@ public class CategoriaController {
 	}
 	
 	@PutMapping("/{idCategoria}")
+	@ApiOperation("Atualizar uma categoria informando o ID")
+	@ApiResponses(value = {
+			@ApiResponse(code = 201,message = "Atualizou a categoria com sucesso"),
+			@ApiResponse(code = 401,message = "Não autorizado para atualizar a categoria"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado a categoria"),
+	})
 	public ResponseEntity<CriarCategoriaDTO> atualizarLivro(@PathVariable Long idCategoria, @RequestBody @Valid CriarCategoriaDTO categoriaDto){
 		Categoria categoria = categoriaService.getDetalhe(idCategoria,CATEGORIA_MSG);
 		categoriaDto.setId(categoria.getId());
@@ -55,6 +76,14 @@ public class CategoriaController {
 	}
 	
 	@DeleteMapping("/{idCategoria}")
+	@ApiOperation("Deletar uma categoria por ID")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200,message = "Retornou os valores com sucesso"),
+			@ApiResponse(code = 204,message = "Categoria deletada com sucesso"),
+			@ApiResponse(code = 401,message = "Não autorizado para deletar a categoria"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado a categoria"),
+	})
 	public ResponseEntity<Void> deletarCategoria(@PathVariable Long idCategoria){
 		Categoria categoria = categoriaService.getDetalhe(idCategoria, CATEGORIA_MSG);
 		
@@ -68,6 +97,12 @@ public class CategoriaController {
 	}
 	
 	@GetMapping("/{idCategoria}")
+	@ApiOperation("Obtém informação de uma categoria por ID")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401,message = "Não autorizado para consultar a categoria"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado a categoria"),
+	})
 	public ResponseEntity<CategoriaDTO> obterInformacaoCategoria(@PathVariable Long idCategoria){
 		Categoria categoria = categoriaService.getDetalhe(idCategoria, CATEGORIA_MSG);
 		CategoriaDTO categoriaDTO = new CategoriaDTO(categoria);
@@ -75,6 +110,12 @@ public class CategoriaController {
 	}
 	
 	@GetMapping
+	@ApiOperation("Paginação da listagem de categorias")
+	@ApiResponses(value = {
+			@ApiResponse(code = 401,message = "Não autorizado para consultar as categorias"),
+			@ApiResponse(code = 403,message = "Não tem acesso a esse end-point"),
+			@ApiResponse(code = 404,message = "Não foi encontrado a categoria"),
+	})
 	public ResponseEntity<PagedListHolder<CategoriaDTO>> mostrarTodasCategoriasPaginada(
 			@RequestParam(defaultValue = "0", value = "pagina") int pagina,
 			@RequestParam(defaultValue = "5", value = "totalRegistro") int totalRegistro
