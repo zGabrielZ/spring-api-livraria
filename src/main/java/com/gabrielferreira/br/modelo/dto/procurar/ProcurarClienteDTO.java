@@ -1,10 +1,6 @@
 package com.gabrielferreira.br.modelo.dto.procurar;
 
 import java.io.Serializable;
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.gabrielferreira.br.modelo.enums.TipoDocumento;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,14 +24,7 @@ public class ProcurarClienteDTO implements Serializable{
 	
 	private String nomeCompleto;
 	private String documento;
-	
-	@JsonFormat(pattern = "dd/MM/yyyy")
-	private Date dataNascimentoInicio;
-	
-	@JsonFormat(pattern = "dd/MM/yyyy")
-	private Date dataNascimentoFinal;
-	
 	private Boolean possuiLivro;
-	private TipoDocumento tipoDocumento;
+	private Integer tipoDocumentoCodigo;
 
 }
